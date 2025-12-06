@@ -429,8 +429,8 @@ async function deserialize(hash) {
 		return {
 			courseId: o.courseId,
 			nsamples: o.nsamples,
-			seed: o.seed || DEFAULT_SEED,  // field added later, could be undefined when loading state from existing links
-			usePosKeep: o.usePosKeep,
+			seed: o.seed ?? DEFAULT_SEED,  // field added later, could be undefined when loading state from existing links
+			usePosKeep: o.usePosKeep ?? true,
 			racedef: new RaceParams(o.racedef),
 			uma1: new HorseState(o.uma1).set('skills', SkillSet(o.uma1.skills)),
 			uma2: new HorseState(o.uma2).set('skills', SkillSet(o.uma2.skills))
