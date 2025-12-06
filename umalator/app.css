@@ -1,3 +1,67 @@
+/* ==========================================================================
+   Uma Musume Race Simulator - Modern Design System
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   CSS Custom Properties (Design Tokens)
+   -------------------------------------------------------------------------- */
+:root {
+	/* Color Palette - Dark Theme with Emerald Accents */
+	--color-bg-primary: #0f172a;       /* Slate 900 */
+	--color-bg-secondary: #1e293b;     /* Slate 800 */
+	--color-bg-tertiary: #334155;      /* Slate 700 */
+	--color-bg-card: rgba(30, 41, 59, 0.85);
+	--color-bg-glass: rgba(15, 23, 42, 0.7);
+	
+	/* Accent Colors */
+	--color-accent-primary: #10b981;   /* Emerald 500 */
+	--color-accent-secondary: #f97316; /* Orange 500 */
+	--color-accent-tertiary: #8b5cf6;  /* Violet 500 */
+	--color-accent-light: #34d399;     /* Emerald 400 */
+	
+	/* Text Colors */
+	--color-text-primary: #f1f5f9;     /* Slate 100 */
+	--color-text-secondary: #94a3b8;   /* Slate 400 */
+	--color-text-muted: #64748b;       /* Slate 500 */
+	--color-text-accent: #6ee7b7;      /* Emerald 300 */
+	
+	/* Border Colors */
+	--color-border: rgba(148, 163, 184, 0.2);
+	--color-border-accent: rgba(16, 185, 129, 0.5);
+	
+	/* Shadows */
+	--shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+	--shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+	--shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+	--shadow-glow: 0 0 20px rgba(16, 185, 129, 0.3);
+	
+	/* Spacing */
+	--spacing-xs: 4px;
+	--spacing-sm: 8px;
+	--spacing-md: 16px;
+	--spacing-lg: 24px;
+	--spacing-xl: 32px;
+	
+	/* Border Radius */
+	--radius-sm: 6px;
+	--radius-md: 12px;
+	--radius-lg: 16px;
+	--radius-xl: 24px;
+	--radius-full: 9999px;
+	
+	/* Transitions */
+	--transition-fast: 150ms ease;
+	--transition-normal: 250ms ease;
+	--transition-slow: 350ms ease;
+	
+	/* Glass Effect */
+	--glass-blur: 12px;
+	--glass-bg: rgba(30, 41, 59, 0.6);
+}
+
+/* --------------------------------------------------------------------------
+   Base Styles & Typography
+   -------------------------------------------------------------------------- */
 @font-face {
 	font-family: "Inter";
 	src: local("Inter"), url("/uma-tools/fonts/Inter-VariableFont_opsz,wght.ttf") format("truetype");
@@ -8,82 +72,180 @@
 	src: local("Noto Sans JP"), url("/uma-tools/fonts/NotoSansJP-VariableFont_wght.ttf") format("truetype");
 }
 
-body {
-	font-family: Inter, "Noto Sans JP", sans-serif;
+*, *::before, *::after {
+	box-sizing: border-box;
 }
 
-.hidden { display: none; }
+body {
+	background: var(--color-bg-primary);
+	background-image: 
+		radial-gradient(ellipse at 20% 0%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
+		radial-gradient(ellipse at 80% 100%, rgba(139, 92, 246, 0.06) 0%, transparent 50%);
+	color: var(--color-text-primary);
+	font-family: Inter, "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	font-size: 15px;
+	line-height: 1.5;
+	min-height: 100vh;
+	margin: 0;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
 
+/* Utility Classes */
+.hidden { display: none !important; }
+
+/* --------------------------------------------------------------------------
+   Main App Layout
+   -------------------------------------------------------------------------- */
 #app {
 	display: grid;
-	gap: 20px;
-	grid-template-columns: auto 1fr;
+	gap: var(--spacing-lg);
+	grid-template-columns: minmax(320px, 720px) 1fr;
 	grid-template-rows: auto 1fr;
-	height: 98vh;
+	min-height: 100vh;
+	padding: var(--spacing-lg);
+	max-width: 1800px;
+	margin: 0 auto;
 }
 
+/* --------------------------------------------------------------------------
+   Top Pane (Track & Controls)
+   -------------------------------------------------------------------------- */
 #topPane {
 	display: grid;
-	grid-template-columns: 960px auto;
-	width: fit-content;
+	grid-template-columns: 1fr auto;
+	gap: var(--spacing-lg);
+	align-items: start;
 }
 
+/* --------------------------------------------------------------------------
+   Run Pane (Simulation Controls)
+   -------------------------------------------------------------------------- */
 #runPane {
+	background: var(--glass-bg);
+	backdrop-filter: blur(var(--glass-blur));
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-lg);
 	display: flex;
 	flex-direction: column;
 	font-size: 14px;
+	gap: var(--spacing-md);
 	justify-content: center;
-	margin-left: 35px;
+	padding: var(--spacing-lg);
+}
+
+#runPane label {
+	color: var(--color-text-secondary);
+	font-size: 0.85em;
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
 }
 
 #seedWrapper {
 	display: flex;
-	width: 177px;
+	width: 100%;
 }
 
 #seed {
-	flex: 1 1 auto;
-	width: 130px;
+	background: var(--color-bg-tertiary);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-sm);
+	color: var(--color-text-primary);
+	flex: 1;
+	padding: var(--spacing-sm) var(--spacing-md);
+	font-family: monospace;
+	transition: border-color var(--transition-fast);
 }
 
+#seed:focus {
+	border-color: var(--color-accent-primary);
+	outline: none;
+	box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+/* Run Button - Premium Gradient Style */
 #run {
-	background: none;
-	border: 1px solid rgb(148, 150, 189);
-	border-radius: 8px;
-	font-size: 1.6em;
-	margin-top: 10px;
-	padding: 24px;
+	background: linear-gradient(135deg, var(--color-accent-primary), #059669);
+	border: none;
+	border-radius: var(--radius-md);
+	color: white;
+	cursor: pointer;
+	font-size: 1.2em;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	padding: var(--spacing-md) var(--spacing-xl);
+	position: relative;
+	overflow: hidden;
+	transition: all var(--transition-normal);
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-#rtMouseOverBox > text {
-	paint-order: stroke;
-	stroke: #fff;
-	stroke-width: 3px;
+#run::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: -100%;
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+	transition: left 0.5s ease;
 }
 
+#run:hover {
+	transform: translateY(-2px);
+	box-shadow: var(--shadow-glow), var(--shadow-lg);
+}
+
+#run:hover::before {
+	left: 100%;
+}
+
+#run:active {
+	transform: translateY(0);
+}
+
+/* --------------------------------------------------------------------------
+   Buttons Row (Track Selection)
+   -------------------------------------------------------------------------- */
 #buttonsRow {
 	align-items: center;
+	background: var(--glass-bg);
+	backdrop-filter: blur(var(--glass-blur));
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-lg);
 	display: flex;
-	gap: 50px;
-	margin-left: 20px;
-	position: relative;
-	width: 960px;
+	gap: var(--spacing-lg);
+	padding: var(--spacing-md) var(--spacing-lg);
+	flex-wrap: wrap;
 }
 
 .trackSelect > select {
-	background: none;
-	border: 1px solid rgb(148, 150, 189);
-	border-radius: 0 8px 8px 0;
-	padding: 0.7em;
+	background: var(--color-bg-tertiary);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-sm);
+	color: var(--color-text-primary);
+	cursor: pointer;
+	padding: var(--spacing-sm) var(--spacing-md);
+	transition: all var(--transition-fast);
+}
+
+.trackSelect > select:hover {
+	border-color: var(--color-accent-primary);
 }
 
 .trackSelect > select:first-child {
-	border-radius: 8px 0 0 8px;
+	border-radius: var(--radius-sm) 0 0 var(--radius-sm);
 	border-right: none;
+}
+
+.trackSelect > select:last-child {
+	border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
 #buttonsRow > div {
 	display: flex;
+	align-items: center;
 }
 
 #buttonsRowSpace {
@@ -91,26 +253,49 @@ body {
 }
 
 .groundSelect {
-	background: inherit;
+	background: transparent;
 	border: none;
-	color: rgb(121, 64, 22);
-	font-size: 1.2em;
-	font-weight: bold;
+	color: var(--color-accent-secondary);
+	font-size: 1.1em;
+	font-weight: 600;
 	padding: 0;
 	text-align: right;
 }
 
 .weatherSelect {
 	display: flex;
-	margin-left: 5px;
+	margin-left: var(--spacing-sm);
+	gap: var(--spacing-xs);
 }
 
 #buttonsRow img {
 	height: 2em;
+	cursor: pointer;
+	transition: all var(--transition-fast);
+	border-radius: var(--radius-sm);
+	padding: 2px;
 }
 
 #buttonsRow img:not(.selected) {
-	filter: grayscale(0.9);
+	filter: grayscale(0.9) opacity(0.5);
+}
+
+#buttonsRow img:hover {
+	filter: none;
+	transform: scale(1.1);
+}
+
+#buttonsRow img.selected {
+	box-shadow: 0 0 0 2px var(--color-accent-primary);
+}
+
+/* --------------------------------------------------------------------------
+   Race Track View
+   -------------------------------------------------------------------------- */
+#rtMouseOverBox > text {
+	paint-order: stroke;
+	stroke: var(--color-bg-primary);
+	stroke-width: 3px;
 }
 
 .hasResults .racetrackView > svg text:not(.mouseoverText) {
@@ -118,65 +303,95 @@ body {
 }
 
 .racetrackView .textbox text {
-	filter: none !important;  /* TODO */
+	filter: none !important;
 	font-weight: bold;
 }
 
+/* --------------------------------------------------------------------------
+   Results Pane
+   -------------------------------------------------------------------------- */
 #resultsPaneWrapper {
 	display: flex;
 }
 
 #resultsPane {
 	align-items: center;
+	background: var(--glass-bg);
+	backdrop-filter: blur(var(--glass-blur));
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-lg);
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
+	padding: var(--spacing-lg);
 }
 
 #resultsPane.mode-chart {
-	width: 980px;
+	width: 100%;
+	max-width: 1000px;
 }
 
 #resultsHelp {
-	color: rgb(121, 64, 22);
-	font-size: 0.7em;
-	margin-top: 0.5em;
+	color: var(--color-text-muted);
+	font-size: 0.75em;
+	margin-top: var(--spacing-sm);
 }
 
+/* Results Summary Table */
 #resultsSummary {
-	border-spacing: 15px 0;
+	border-spacing: var(--spacing-md) var(--spacing-sm);
 }
 
 #resultsSummary > tfoot th {
-	color: rgb(121, 64, 22);
+	color: var(--color-text-secondary);
 	cursor: pointer;
-	font-size: 0.9em;
+	font-size: 0.85em;
+	font-weight: 500;
+	transition: color var(--transition-fast);
+}
+
+#resultsSummary > tfoot th:hover,
+#resultsSummary > tfoot th.selected {
+	color: var(--color-accent-primary);
 }
 
 #resultsSummary > tfoot th.selected {
 	text-decoration: underline;
+	text-underline-offset: 4px;
 }
 
 #resultsSummary > tbody td {
-	background: rgb(248, 248, 248);
-	border: 2px solid rgb(224, 214, 204);
-	border-radius: 100px;
-	color: rgb(121, 64, 22);
+	background: var(--color-bg-secondary);
+	border: 2px solid var(--color-border);
+	border-radius: var(--radius-xl);
+	color: var(--color-text-primary);
 	cursor: pointer;
-	font-size: 2em;
-	font-weight: normal;
+	font-size: 1.8em;
+	font-weight: 600;
 	height: 64px;
-	line-height: 0.8em;
-	padding: 36px 20px 20px 20px;
+	line-height: 0.9em;
+	padding: var(--spacing-xl) var(--spacing-lg) var(--spacing-lg);
 	text-align: center;
-	width: 80px;
+	min-width: 90px;
+	transition: all var(--transition-fast);
+}
+
+#resultsSummary > tbody td:hover {
+	border-color: var(--color-accent-primary);
+	transform: translateY(-2px);
+	box-shadow: var(--shadow-md);
 }
 
 #resultsSummary .unit-basinn {
 	display: block;
-	font-size: 0.5em;
+	font-size: 0.45em;
+	color: var(--color-text-secondary);
+	font-weight: 500;
 }
 
+/* --------------------------------------------------------------------------
+   Info Tables
+   -------------------------------------------------------------------------- */
 #infoTables {
 	margin: 0 auto;
 	min-width: 300px;
@@ -188,23 +403,22 @@ body {
 }
 
 #infoTables tbody {
-	border-bottom: 1px solid rgb(121, 64, 22);
+	border-bottom: 1px solid var(--color-border);
 	display: block;
 	width: 450px;
 }
 
 #infoTables tbody:last-child {
 	border: none;
-	height: 150px;  /* TODO this is a bit arbitrary */
+	height: 150px;
 	overflow-x: hidden;
 	overflow-y: auto;
 }
 
-/* cant have normal margins on table elements for some reason */
 #infoTables tbody::before, #infoTables tbody::after {
 	content: '';
 	display: block;
-	height: 10px;
+	height: var(--spacing-md);
 }
 
 #infoTables > table tr {
@@ -214,21 +428,26 @@ body {
 }
 
 #infoTables > table th {
-	color: rgb(121, 64, 22);
-	font-weight: bold;
+	color: var(--color-text-secondary);
+	font-weight: 600;
 	overflow: hidden;
 	text-align: left;
 	text-wrap: nowrap;
+	font-size: 0.9em;
 }
 
 #infoTables > table td {
-	font-family: monospace;
+	font-family: 'SF Mono', 'Fira Code', monospace;
 	width: 160px;
+	color: var(--color-text-primary);
 }
 
+/* --------------------------------------------------------------------------
+   Uma Pane (Horse Definition)
+   -------------------------------------------------------------------------- */
 #umaPane {
 	grid-row: 1 / 3;
-	width: 700px;  /* needed for when this is a placeholder to consume grid space when uma pane is expanded */
+	min-width: 680px;
 }
 
 #umaPane > div {
@@ -251,40 +470,56 @@ body {
 	text-align: left;
 }
 
+/* Uma Tabs */
 .umaTab {
-	background: linear-gradient(white, rgb(228, 227, 234));
-	color: rgb(121,64,22);
+	background: linear-gradient(135deg, var(--color-bg-secondary), var(--color-bg-tertiary));
+	border: 1px solid var(--color-border);
+	color: var(--color-text-secondary);
+	cursor: pointer;
 	flex-basis: 0;
 	flex-grow: 1;
-	outline: 2px solid rgb(216, 217, 220);
-	padding: 6px 0 6px 20px;
+	font-weight: 600;
+	padding: var(--spacing-md) var(--spacing-lg);
+	transition: all var(--transition-fast);
 }
 
 .umaTab:first-child {
-	border-top-left-radius: 12px;
+	border-radius: var(--radius-md) 0 0 0;
 }
 
 .umaTab:last-child {
-	border-top-right-radius: 12px;
+	border-radius: 0 var(--radius-md) 0 0;
+}
+
+.umaTab:hover {
+	background: linear-gradient(135deg, var(--color-bg-tertiary), var(--color-bg-secondary));
+	color: var(--color-text-primary);
 }
 
 .umaTab.selected {
-	background: linear-gradient(rgb(153, 219, 68), rgb(112, 190, 18));
+	background: linear-gradient(135deg, var(--color-accent-primary), #059669);
+	border-color: var(--color-accent-primary);
 	color: white;
-	outline: 2px solid rgb(170, 221, 154);
 	z-index: 1;
 }
 
+/* Expand Button */
 #expandBtn {
-	background: linear-gradient(#99db44,#70be12);
-	border: 2px solid rgb(170,221,154);
-	border-radius: 6px;
-	cursor: default;
+	background: linear-gradient(135deg, var(--color-accent-primary), #059669);
+	border: none;
+	border-radius: var(--radius-sm);
+	cursor: pointer;
 	float: right;
 	height: 34px;
-	margin: 8px 10px 0 0;
+	margin: var(--spacing-sm) var(--spacing-md) 0 0;
 	position: relative;
 	width: 34px;
+	transition: all var(--transition-fast);
+}
+
+#expandBtn:hover {
+	transform: scale(1.1);
+	box-shadow: var(--shadow-glow);
 }
 
 #expandBtn::after {
@@ -292,88 +527,104 @@ body {
 	border-top: 2px solid white;
 	content: "";
 	display: block;
-	height: 15px;
-	left: 4px;
+	height: 12px;
+	left: 7px;
 	position: absolute;
 	top: 8px;
 	transform: rotate(45deg);
-	width: 15px;
+	width: 12px;
 }
 
 .selected > #expandBtn {
-	background: linear-gradient(#fff,#e4e3ea);
-	border: 2px solid rgb(216,217,220);
+	background: var(--color-bg-tertiary);
+	border: 1px solid var(--color-border);
 }
 
 .selected > #expandBtn::after {
-	border-right: 2px solid rgb(121,64,22);
-	border-top: 2px solid rgb(121,64,22);
+	border-color: var(--color-text-secondary);
 }
 
+/* --------------------------------------------------------------------------
+   Uma Overlay (Expanded View)
+   -------------------------------------------------------------------------- */
 #umaOverlay {
-	background: white;
-	border: 1px solid rgb(148, 150, 189);
+	background: var(--color-bg-primary);
+	border: 1px solid var(--color-border);
 	border-left: none;
-	border-radius: 0 12px 12px 0;
+	border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
 	display: flex;
-	gap: 30px;
-	height: calc(100vh - 18px);
+	gap: var(--spacing-xl);
+	height: calc(100vh - 20px);
 	left: 0;
 	margin-left: 2px;
-	padding: 6px;
+	padding: var(--spacing-md);
 	position: fixed;
-	top: 0;
+	top: 10px;
+	z-index: 100;
+	box-shadow: var(--shadow-lg);
 }
 
 #closeUmaOverlay {
-	color: rgb(148, 150, 189);
-	cursor: default;
-	font-size: 2em;
+	color: var(--color-text-muted);
+	cursor: pointer;
+	font-size: 1.8em;
 	height: 2em;
+	transition: color var(--transition-fast);
+}
+
+#closeUmaOverlay:hover {
+	color: var(--color-accent-primary);
 }
 
 #copyUmaButtons {
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
+	gap: var(--spacing-sm);
 	justify-content: center;
 }
 
 #copyUmaButtons > div {
-	background: linear-gradient(rgb(255, 255, 255), rgb(228, 224, 233));
-	border: 2px solid rgb(181, 174, 187);
-	border-radius: 8px;
-	height: 60px;
-	line-height: 60px;
+	background: var(--color-bg-secondary);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md);
+	cursor: pointer;
+	height: 56px;
+	line-height: 56px;
 	position: relative;
-	width: 60px;
+	width: 56px;
+	transition: all var(--transition-fast);
+}
+
+#copyUmaButtons > div:hover {
+	border-color: var(--color-accent-primary);
+	transform: scale(1.05);
 }
 
 #copyUmaButtons > div::after {
-	border-top: 2px solid rgb(121, 64, 22);
-	border-right: 2px solid rgb(121, 64, 22);
+	border-top: 2px solid var(--color-text-secondary);
+	border-right: 2px solid var(--color-text-secondary);
 	content: '';
 	display: block;
-	height: 30px;
+	height: 20px;
 	position: absolute;
-	width: 30px;
+	width: 20px;
 }
 
 #copyUmaToRight::after {
 	left: 15px;
-	top: 25px;
-	transform: rotate(45deg) translate(-15px,0);
+	top: 22px;
+	transform: rotate(45deg) translate(-10px, 0);
 }
 
 #copyUmaToLeft::after {
-	bottom: 25px;
+	bottom: 22px;
 	right: 15px;
-	transform: rotate(-135deg) translate(-15px,0);
+	transform: rotate(-135deg) translate(-10px, 0);
 }
 
 #swapUmas {
-	color: rgb(121, 64, 22);
-	font-size: 36px;
+	color: var(--color-text-secondary);
+	font-size: 32px;
 	text-align: center;
 }
 
@@ -381,6 +632,9 @@ body {
 	display: none !important;
 }
 
+/* --------------------------------------------------------------------------
+   Basinn Chart
+   -------------------------------------------------------------------------- */
 .basinnChartWrapperWrapper {
 	position: relative;
 	width: 100%;
@@ -389,32 +643,107 @@ body {
 .basinnChartRefresh {
 	background: unset;
 	border: unset;
-	color: rgb(222, 161, 87);
-	font-size: 26px;
+	color: var(--color-accent-secondary);
+	cursor: pointer;
+	font-size: 24px;
 	position: absolute;
 	right: -36px;
 	top: -12px;
-	transition: all 100ms;
+	transition: all var(--transition-fast);
 }
 
 .basinnChartRefresh:hover {
-	transform: scale(1.3);
+	transform: scale(1.2) rotate(45deg);
+	color: var(--color-accent-primary);
 }
 
 .basinnChartPopover {
-	background: white;
-	border: 2px solid rgb(181, 174, 187);
-	border-radius: 6px;
+	background: var(--color-bg-primary);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md);
 	display: flex;
 	height: 333px;
 	left: 0;
-	padding: 10px;
+	padding: var(--spacing-md);
 	position: absolute;
 	top: 0;
 	width: 845px;
 	z-index: 50;
+	box-shadow: var(--shadow-lg);
 }
 
 .basinnChartPopover .expandedSkill {
 	width: 345px;
+}
+
+/* --------------------------------------------------------------------------
+   Scrollbar Styling
+   -------------------------------------------------------------------------- */
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: var(--color-bg-tertiary);
+	border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb {
+	background: var(--color-text-muted);
+	border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: var(--color-text-secondary);
+}
+
+/* --------------------------------------------------------------------------
+   Animations
+   -------------------------------------------------------------------------- */
+@keyframes fadeIn {
+	from { opacity: 0; transform: translateY(10px); }
+	to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+	0%, 100% { opacity: 1; }
+	50% { opacity: 0.7; }
+}
+
+@keyframes shimmer {
+	0% { background-position: -200% 0; }
+	100% { background-position: 200% 0; }
+}
+
+/* --------------------------------------------------------------------------
+   Responsive Design
+   -------------------------------------------------------------------------- */
+@media (max-width: 1400px) {
+	#app {
+		grid-template-columns: 1fr;
+		grid-template-rows: auto auto auto;
+	}
+	
+	#umaPane {
+		grid-row: auto;
+		min-width: auto;
+		width: 100%;
+	}
+}
+
+@media (max-width: 768px) {
+	#app {
+		padding: var(--spacing-md);
+		gap: var(--spacing-md);
+	}
+	
+	#buttonsRow {
+		flex-direction: column;
+		gap: var(--spacing-md);
+	}
+	
+	#umaPane {
+		min-width: auto;
+	}
 }
