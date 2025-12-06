@@ -111,17 +111,18 @@ body {
 
 /* --------------------------------------------------------------------------
    Main App Layout
-   Uma Pane on LEFT (fixed 700px), Track & Controls on RIGHT (flexible)
+   Uma Pane on LEFT (fixed), Track & Controls on RIGHT (flexible)
+   Everything must fit within 100vh
    -------------------------------------------------------------------------- */
 #app {
 	display: grid;
-	gap: var(--spacing-lg);
-	grid-template-columns: 700px 1fr;
+	gap: var(--spacing-md);
+	grid-template-columns: 580px 1fr;
 	grid-template-rows: auto 1fr;
-	min-height: 100vh;
-	padding: var(--spacing-lg);
-	max-width: 1800px;
-	margin: 0 auto;
+	height: 100vh;
+	max-height: 100vh;
+	padding: var(--spacing-md);
+	overflow: hidden;
 }
 
 
