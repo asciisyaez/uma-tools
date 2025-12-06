@@ -26,6 +26,8 @@ import skilldata from '../uma-skill-tools/data/skill_data.json';
 import skillnames from '../uma-skill-tools/data/skillnames.json';
 import skillmeta from '../skill_meta.json';
 
+import presetsData from './champions_meetings.json';
+
 import './app.css';
 
 const DEFAULT_SAMPLES = 500;
@@ -38,28 +40,29 @@ class RaceParams extends Record({
 	season: Season.Spring,
 	time: Time.Midday,
 	grade: Grade.G1
-}) {}
+}) { }
 
 const enum EventType { CM, LOH }
 
-const presets = (CC_GLOBAL ? [
-	{type: EventType.CM, name: 'Scorpio Cup', date: '2026-01', courseId: 10604, season: Season.Autumn, ground: GroundCondition.Soft, weather: Weather.Rainy, time: Time.Midday},
-	{type: EventType.CM, name: 'Libra Cup', date: '2025-12', courseId: 10810, season: Season.Autumn, ground: GroundCondition.Good, weather: Weather.Sunny, time: Time.Midday},
-	{type: EventType.CM, name: 'Virgo Cup', date: '2025-11-20', courseId: 10903, season: Season.Autumn, ground: GroundCondition.Good, weather: Weather.Sunny, time: Time.Midday},
-	{type: EventType.CM, name: 'Leo Cup', date: '2025-10-30', courseId: 10906, season: Season.Summer, ground: GroundCondition.Good, weather: Weather.Sunny, time: Time.Midday},
-	{type: EventType.CM, name: 'Cancer Cup', date: '2025-10-07', courseId: 10602, season: Season.Summer, ground: GroundCondition.Yielding, weather: Weather.Sunny, time: Time.Midday},
-	{type: EventType.CM, name: 'Gemini Cup', date: '2025-09', courseId: 10811, season: Season.Spring, ground: GroundCondition.Good, weather: Weather.Sunny, time: Time.Midday},
-	{type: EventType.CM, name: 'Taurus Cup', date: '2025-08', courseId: 10606, season: Season.Spring, ground: GroundCondition.Good, weather: Weather.Sunny, time: Time.Midday}
-] : [
-	{type: EventType.LOH, date: '2026-02', courseId: 10602, season: Season.Winter, time: Time.Midday},
-	{type: EventType.CM, date: '2026-01', courseId: 10506, season: Season.Winter, ground: GroundCondition.Good, weather: Weather.Sunny, time: Time.Midday},
-	{type: EventType.CM, date: '2025-12-21', courseId: 10903, season: Season.Winter, ground: GroundCondition.Good, weather: Weather.Sunny, time: Time.Midday},
-	{type: EventType.LOH, date: '2025-11', courseId: 11502, season: Season.Autumn, time: Time.Midday},
-	{type: EventType.CM, date: '2025-10', courseId: 10302, season: Season.Autumn, ground: GroundCondition.Good, weather: Weather.Cloudy, time: Time.Midday},
-	{type: EventType.CM, date: '2025-09-22', courseId: 10807, season: Season.Autumn, ground: GroundCondition.Good, weather: Weather.Sunny, time: Time.Midday},
-	{type: EventType.LOH, date: '2025-08', courseId: 10105, season: Season.Summer, Time: Time.Midday},
-	{type: EventType.CM, date: '2025-07-25', courseId: 10906, ground: GroundCondition.Yielding, weather: Weather.Cloudy, season: Season.Summer, time: Time.Midday},
-	{type: EventType.CM, date: '2025-06-21', courseId: 10606, ground: GroundCondition.Good, weather: Weather.Sunny, season: Season.Spring, time: Time.Midday}
+const presets = (CC_GLOBAL ? presetsData.map(p => ({
+	type: EventType.CM,
+	name: p.name,
+	date: p.date,
+	courseId: p.courseId,
+	season: Season[p.season],
+	ground: GroundCondition[p.ground],
+	weather: Weather[p.weather],
+	time: Time[p.time]
+})) : [
+	{ type: EventType.LOH, date: '2026-02', courseId: 10602, season: Season.Winter, time: Time.Midday },
+	{ type: EventType.CM, date: '2026-01', courseId: 10506, season: Season.Winter, ground: GroundCondition.Good, weather: Weather.Sunny, time: Time.Midday },
+	{ type: EventType.CM, date: '2025-12-21', courseId: 10903, season: Season.Winter, ground: GroundCondition.Good, weather: Weather.Sunny, time: Time.Midday },
+	{ type: EventType.LOH, date: '2025-11', courseId: 11502, season: Season.Autumn, time: Time.Midday },
+	{ type: EventType.CM, date: '2025-10', courseId: 10302, season: Season.Autumn, ground: GroundCondition.Good, weather: Weather.Cloudy, time: Time.Midday },
+	{ type: EventType.CM, date: '2025-09-22', courseId: 10807, season: Season.Autumn, ground: GroundCondition.Good, weather: Weather.Sunny, time: Time.Midday },
+	{ type: EventType.LOH, date: '2025-08', courseId: 10105, season: Season.Summer, Time: Time.Midday },
+	{ type: EventType.CM, date: '2025-07-25', courseId: 10906, ground: GroundCondition.Yielding, weather: Weather.Cloudy, season: Season.Summer, time: Time.Midday },
+	{ type: EventType.CM, date: '2025-06-21', courseId: 10606, ground: GroundCondition.Good, weather: Weather.Sunny, season: Season.Spring, time: Time.Midday }
 ])
 	.map(def => ({
 		type: def.type,
@@ -75,7 +78,7 @@ const presets = (CC_GLOBAL ? [
 			grade: Grade.G1
 		})
 	}))
-	.sort((a,b) => +b.date - +a.date);
+	.sort((a, b) => +b.date - +a.date);
 
 const DEFAULT_PRESET = presets[Math.max(presets.findIndex((now => p => new Date(p.date.getFullYear(), p.date.getUTCMonth() + 1, 0) < now)(new Date())) - 1, 0)];
 const DEFAULT_COURSE_ID = DEFAULT_PRESET.courseId;
@@ -108,9 +111,9 @@ function TimeOfDaySelect(props) {
 	// + 2 because for some reason the icons are 00-02 (noon/evening/night) but the enum values are 1-4 (morning(?) noon evening night)
 	return (
 		<div class="timeofdaySelect" onClick={click}>
-			{Array(3).fill(0).map((_,i) =>
-				<img src={`/uma-tools/icons/utx_ico_timezone_0${i}.png`} title={SKILL_STRINGS_en.skilldetails.time[i+2]}
-					class={i+2 == props.value ? 'selected' : ''} data-timeofday={i+2} />)}
+			{Array(3).fill(0).map((_, i) =>
+				<img src={`/uma-tools/icons/utx_ico_timezone_0${i}.png`} title={SKILL_STRINGS_en.skilldetails.time[i + 2]}
+					class={i + 2 == props.value ? 'selected' : ''} data-timeofday={i + 2} />)}
 		</div>
 	);
 }
@@ -144,9 +147,9 @@ function WeatherSelect(props) {
 	}
 	return (
 		<div class="weatherSelect" onClick={click}>
-			{Array(4).fill(0).map((_,i) =>
-				<img src={`/uma-tools/icons/utx_ico_weather_0${i}.png`} title={SKILL_STRINGS_en.skilldetails.weather[i+1]}
-					class={i+1 == props.value ? 'selected' : ''} data-weather={i+1} />)}
+			{Array(4).fill(0).map((_, i) =>
+				<img src={`/uma-tools/icons/utx_ico_weather_0${i}.png`} title={SKILL_STRINGS_en.skilldetails.weather[i + 1]}
+					class={i + 1 == props.value ? 'selected' : ''} data-weather={i + 1} />)}
 		</div>
 	);
 }
@@ -159,27 +162,27 @@ function SeasonSelect(props) {
 	}
 	return (
 		<div class="seasonSelect" onClick={click}>
-			{Array(4 + +!CC_GLOBAL /* global doesnt have late spring for some reason */).fill(0).map((_,i) =>
-				<img src={`/uma-tools/icons${CC_GLOBAL?'/global':''}/utx_txt_season_0${i}.png`} title={SKILL_STRINGS_en.skilldetails.season[i+1]}
-					class={i+1 == props.value ? 'selected' : ''} data-season={i+1} />)}
+			{Array(4 + +!CC_GLOBAL /* global doesnt have late spring for some reason */).fill(0).map((_, i) =>
+				<img src={`/uma-tools/icons${CC_GLOBAL ? '/global' : ''}/utx_txt_season_0${i}.png`} title={SKILL_STRINGS_en.skilldetails.season[i + 1]}
+					class={i + 1 == props.value ? 'selected' : ''} data-season={i + 1} />)}
 		</div>
 	);
 }
 
 function Histogram(props) {
-	const {data, width, height} = props;
+	const { data, width, height } = props;
 	const axes = useRef(null);
 	const xH = 20;
 	const yW = 40;
 
 	const x = d3.scaleLinear().domain(
-		data[0] == 0 && data[data.length-1] == 0
-			? [-1,1]
-			: [Math.min(0,Math.floor(data[0])),Math.ceil(data[data.length-1])]
-	).range([yW,width-yW]);
+		data[0] == 0 && data[data.length - 1] == 0
+			? [-1, 1]
+			: [Math.min(0, Math.floor(data[0])), Math.ceil(data[data.length - 1])]
+	).range([yW, width - yW]);
 	const bucketize = d3.bin().value(id).domain(x.domain()).thresholds(x.ticks(30));
 	const buckets = bucketize(data);
-	const y = d3.scaleLinear().domain([0,d3.max(buckets, b => b.length)]).range([height-xH,xH]);
+	const y = d3.scaleLinear().domain([0, d3.max(buckets, b => b.length)]).range([height - xH, xH]);
 
 	useEffect(function () {
 		const g = d3.select(axes.current);
@@ -188,7 +191,7 @@ function Histogram(props) {
 		g.append('g').attr('transform', `translate(${yW},0)`).call(d3.axisLeft(y));
 	}, [data, width, height]);
 
-	const rects = buckets.map((b,i) =>
+	const rects = buckets.map((b, i) =>
 		<rect key={i} fill="#2a77c5" stroke="black" x={x(b.x0)} y={y(b.length)} width={x(b.x1) - x(b.x0)} height={height - xH - y(b.length)} />
 	);
 	return (
@@ -208,7 +211,7 @@ function BasinnChartPopover(props) {
 		computePosition(anchor, popover.current, {
 			placement: 'bottom-start',
 			middleware: [flip()]
-		}).then(({x,y}) => {
+		}).then(({ x, y }) => {
 			popover.current.style.transform = `translate(${x}px,${y}px)`;
 			popover.current.style.visibility = 'visible';
 		});
@@ -225,14 +228,14 @@ function BasinnChartPopover(props) {
 function VelocityLines(props) {
 	const axes = useRef(null);
 	const data = props.data;
-	const x = d3.scaleLinear().domain([0,props.courseDistance]).range([0,props.width]);
-	const y = data && d3.scaleLinear().domain([0,d3.max(data.v, v => d3.max(v))]).range([props.height,0]);
-	const hpY = data && d3.scaleLinear().domain([0,d3.max(data.hp, hp => d3.max(hp))]).range([props.height,0]);
+	const x = d3.scaleLinear().domain([0, props.courseDistance]).range([0, props.width]);
+	const y = data && d3.scaleLinear().domain([0, d3.max(data.v, v => d3.max(v))]).range([props.height, 0]);
+	const hpY = data && d3.scaleLinear().domain([0, d3.max(data.hp, hp => d3.max(hp))]).range([props.height, 0]);
 	useEffect(function () {
 		if (axes.current == null) return;
 		const g = d3.select(axes.current);
 		g.selectAll('*').remove();
-		g.append('g').attr('transform', `translate(${props.xOffset},${props.height+5})`).call(d3.axisBottom(x));
+		g.append('g').attr('transform', `translate(${props.xOffset},${props.height + 5})`).call(d3.axisBottom(x));
 		if (data) {
 			g.append('g').attr('transform', `translate(${props.xOffset},4)`).call(d3.axisLeft(y));
 		}
@@ -242,13 +245,13 @@ function VelocityLines(props) {
 	return (
 		<Fragment>
 			<g transform={`translate(${props.xOffset},5)`}>
-				{data && data.v.map((v,i) =>
+				{data && data.v.map((v, i) =>
 					<path fill="none" stroke={colors[i]} stroke-width="2.5" d={
-						d3.line().x(j => x(data.p[i][j])).y(j => y(v[j]))(data.p[i].map((_,j) => j))
+						d3.line().x(j => x(data.p[i][j])).y(j => y(v[j]))(data.p[i].map((_, j) => j))
 					} />
-				).concat(props.showHp ? data.hp.map((hp,i) =>
+				).concat(props.showHp ? data.hp.map((hp, i) =>
 					<path fill="none" stroke={hpColors[i]} stroke-width="2.5" d={
-						d3.line().x(j => x(data.p[i][j])).y(j => hpY(hp[j]))(data.p[i].map((_,j) => j))
+						d3.line().x(j => x(data.p[i][j])).y(j => hpY(hp[j]))(data.p[i].map((_, j) => j))
 					} />
 				) : [])}
 			</g>
@@ -258,19 +261,19 @@ function VelocityLines(props) {
 }
 
 function ResultsTable(props) {
-	const {caption, color, chartData, idx} = props;
+	const { caption, color, chartData, idx } = props;
 	return (
 		<table>
 			<caption style={`color:${color}`}>{caption}</caption>
 			<tbody>
-				<tr><th>Time to finish</th><td>{chartData.t[idx][chartData.t[idx].length-1].toFixed(4) + ' s'}</td></tr>
+				<tr><th>Time to finish</th><td>{chartData.t[idx][chartData.t[idx].length - 1].toFixed(4) + ' s'}</td></tr>
 				<tr><th>Start delay</th><td>{chartData.sdly[idx].toFixed(4) + ' s'}</td></tr>
-				<tr><th>Top speed</th><td>{chartData.v[idx].reduce((a,b) => Math.max(a,b), 0).toFixed(2) + ' m/s'}</td></tr>
+				<tr><th>Top speed</th><td>{chartData.v[idx].reduce((a, b) => Math.max(a, b), 0).toFixed(2) + ' m/s'}</td></tr>
 				<tr><th>Time in downhill speedup mode</th><td>{chartData.dh[idx].toFixed(2) + ' s'}</td></tr>
 			</tbody>
 			{chartData.sk[idx].size > 0 &&
 				<tbody>
-					{Array.from(chartData.sk[idx].entries()).map(([id,ars]) => ars.flatMap(pos =>
+					{Array.from(chartData.sk[idx].entries()).map(([id, ars]) => ars.flatMap(pos =>
 						<tr>
 							<th>{skillnames[id][0]}</th>
 							<td>{pos[1] == -1 ? `${pos[0].toFixed(2)} m` : `${pos[0].toFixed(2)} m – ${pos[1].toFixed(2)} m`}</td>
@@ -288,14 +291,14 @@ const NO_SHOW = Object.freeze([
 ]);
 
 const ORDER_RANGE_FOR_STRATEGY = Object.freeze({
-	'Nige': [1,1],
-	'Senkou': [2,4],
-	'Sasi': [5,9],
-	'Oikomi': [5,9],
-	'Oonige': [1,1]
+	'Nige': [1, 1],
+	'Senkou': [2, 4],
+	'Sasi': [5, 9],
+	'Oikomi': [5, 9],
+	'Oonige': [1, 1]
 });
 
-function racedefToParams({mood, ground, weather, season, time, grade}: RaceParams, includeOrder?: string): RaceParameters {
+function racedefToParams({ mood, ground, weather, season, time, grade }: RaceParams, includeOrder?: string): RaceParameters {
 	return {
 		mood, groundCondition: ground, weather, season, time, grade,
 		popularity: 1,
@@ -379,8 +382,8 @@ async function deserialize(hash) {
 	}
 }
 
-const EMPTY_RESULTS_STATE = {courseId: DEFAULT_COURSE_ID, results: [], runData: null, chartData: null, displaying: ''};
-function updateResultsState(state: typeof EMPTY_RESULTS_STATE, o: number | string | {results: any, runData: any}) {
+const EMPTY_RESULTS_STATE = { courseId: DEFAULT_COURSE_ID, results: [], runData: null, chartData: null, displaying: '' };
+function updateResultsState(state: typeof EMPTY_RESULTS_STATE, o: number | string | { results: any, runData: any }) {
 	if (typeof o == 'number') {
 		return {
 			courseId: o,
@@ -390,7 +393,7 @@ function updateResultsState(state: typeof EMPTY_RESULTS_STATE, o: number | strin
 			displaying: ''
 		};
 	} else if (typeof o == 'string') {
-		postEvent('setChartData', {display: o});
+		postEvent('setChartData', { display: o });
 		return {
 			courseId: state.courseId,
 			results: state.results,
@@ -417,7 +420,7 @@ function RacePresets(props) {
 			<label for={id}>Preset:</label>
 			<select id={id} onChange={e => { const i = +e.currentTarget.value; i > -1 && props.set(presets[i].courseId, presets[i].racedef); }}>
 				<option value="-1"></option>
-				{presets.map((p,i) => <option value={i} selected={i == selectedIdx}>{p.name || (p.date.getUTCFullYear() + '-' + (100 + p.date.getUTCMonth() + 1).toString().slice(-2) + (p.type == EventType.CM ? ' CM' : ' LOH'))}</option>)}
+				{presets.map((p, i) => <option value={i} selected={i == selectedIdx}>{p.name || (p.date.getUTCFullYear() + '-' + (100 + p.date.getUTCMonth() + 1).toString().slice(-2) + (p.type == EventType.CM ? ' CM' : ' LOH'))}</option>)}
 			</select>
 		</Fragment>
 	);
@@ -428,20 +431,20 @@ const baseSkillsToTest = Object.keys(skilldata).filter(id => isGeneralSkill(id) 
 const enum Mode { Compare, Chart }
 const enum UiStateMsg { SetModeCompare, SetModeChart, SetCurrentIdx0, SetCurrentIdx1, ToggleExpand }
 
-const DEFAULT_UI_STATE = {mode: Mode.Compare, currentIdx: 0, expanded: false};
+const DEFAULT_UI_STATE = { mode: Mode.Compare, currentIdx: 0, expanded: false };
 
 function nextUiState(state: typeof DEFAULT_UI_STATE, msg: UiStateMsg) {
 	switch (msg) {
 		case UiStateMsg.SetModeCompare:
-			return {...state, mode: Mode.Compare};
+			return { ...state, mode: Mode.Compare };
 		case UiStateMsg.SetModeChart:
-			return {...state, mode: Mode.Chart, currentIdx: 0, expanded: false};
+			return { ...state, mode: Mode.Chart, currentIdx: 0, expanded: false };
 		case UiStateMsg.SetCurrentIdx0:
-			return {...state, currentIdx: 0};
+			return { ...state, currentIdx: 0 };
 		case UiStateMsg.SetCurrentIdx1:
-			return {...state, currentIdx: 1};
+			return { ...state, currentIdx: 1 };
 		case UiStateMsg.ToggleExpand:
-			return {...state, expanded: !state.expanded};
+			return { ...state, expanded: !state.expanded };
 	}
 }
 
@@ -451,20 +454,20 @@ function App(props) {
 	const [racedef, setRaceDef] = useState(() => DEFAULT_PRESET.racedef);
 	const [nsamples, setSamples] = useState(DEFAULT_SAMPLES);
 	const [seed, setSeed] = useState(DEFAULT_SEED);
-	const [usePosKeep, togglePosKeep] = useReducer((b,_) => !b, true);
-	const [showHp, toggleShowHp] = useReducer((b,_) => !b, false);
-	const [{courseId, results, runData, chartData, displaying}, setSimState] = useReducer(updateResultsState, EMPTY_RESULTS_STATE);
+	const [usePosKeep, togglePosKeep] = useReducer((b, _) => !b, true);
+	const [showHp, toggleShowHp] = useReducer((b, _) => !b, false);
+	const [{ courseId, results, runData, chartData, displaying }, setSimState] = useReducer(updateResultsState, EMPTY_RESULTS_STATE);
 	const setCourseId = setSimState;
 	const setResults = setSimState;
 	const setChartData = setSimState;
 
-	const [tableData, updateTableData] = useReducer((data,newData) => {
+	const [tableData, updateTableData] = useReducer((data, newData) => {
 		const merged = new Map();
 		if (newData == 'reset') {
 			return merged;
 		}
-		data.forEach((v,k) => merged.set(k,v));
-		newData.forEach((v,k) => merged.set(k,v));
+		data.forEach((v, k) => merged.set(k, v));
+		newData.forEach((v, k) => merged.set(k, v));
 		return merged;
 	}, new Map());
 
@@ -486,17 +489,17 @@ function App(props) {
 
 	const [lastRunChartUma, setLastRunChartUma] = useState(uma1);
 
-	const [{mode, currentIdx, expanded}, updateUiState] = useReducer(nextUiState, DEFAULT_UI_STATE);
+	const [{ mode, currentIdx, expanded }, updateUiState] = useReducer(nextUiState, DEFAULT_UI_STATE);
 	function toggleExpand(e: Event) {
 		e.stopPropagation();
-		postEvent('toggleExpand', {expand: !expanded});
+		postEvent('toggleExpand', { expand: !expanded });
 		updateUiState(UiStateMsg.ToggleExpand);
 	}
 
-	const [worker1, worker2] = [1,2].map(_ => useMemo(() => {
+	const [worker1, worker2] = [1, 2].map(_ => useMemo(() => {
 		const w = new Worker('./simulator.worker.js');
 		w.addEventListener('message', function (e) {
-			const {type, results} = e.data;
+			const { type, results } = e.data;
 			switch (type) {
 				case 'compare':
 					setResults(results);
@@ -537,22 +540,22 @@ function App(props) {
 	}
 
 	function copyUmaToRight() {
-		postEvent('copyUma', {direction: 'to-right'});
+		postEvent('copyUma', { direction: 'to-right' });
 		setUma2(uma1);
 	}
 
 	function copyUmaToLeft() {
-		postEvent('copyUma', {direction: 'to-left'});
+		postEvent('copyUma', { direction: 'to-left' });
 		setUma1(uma2);
 	}
 
 	function swapUmas() {
-		postEvent('copyUma', {direction: 'swap'});
+		postEvent('copyUma', { direction: 'swap' });
 		setUma1(uma2);
 		setUma2(uma1);
 	}
 
-	const strings = {skillnames: {}, tracknames: TRACKNAMES_en, common: CC_GLOBAL ? COMMON_global : COMMON_en};
+	const strings = { skillnames: {}, tracknames: TRACKNAMES_en, common: CC_GLOBAL ? COMMON_global : COMMON_en };
 	const langid = CC_GLOBAL ? 0 : +(props.lang == 'en');
 	Object.keys(skillnames).forEach(id => strings.skillnames[id] = skillnames[id][langid]);
 
@@ -566,7 +569,7 @@ function App(props) {
 				racedef: racedefToParams(racedef),
 				uma1: uma1.toJS(),
 				uma2: uma2.toJS(),
-				options: {seed, usePosKeep}
+				options: { seed, usePosKeep }
 			}
 		});
 	}
@@ -587,12 +590,12 @@ function App(props) {
 		const filler = new Map();
 		skills.forEach(id => filler.set(id, getNullRow(id)));
 		const uma = uma1.toJS();
-		const skills1 = skills.slice(0,Math.floor(skills.length/2));
-		const skills2 = skills.slice(Math.floor(skills.length/2));
+		const skills1 = skills.slice(0, Math.floor(skills.length / 2));
+		const skills2 = skills.slice(Math.floor(skills.length / 2));
 		updateTableData('reset');
 		updateTableData(filler);
-		worker1.postMessage({msg: 'chart', data: {skills: skills1, course, racedef: params, uma, options: {seed, usePosKeep}}});
-		worker2.postMessage({msg: 'chart', data: {skills: skills2, course, racedef: params, uma, options: {seed, usePosKeep}}});
+		worker1.postMessage({ msg: 'chart', data: { skills: skills1, course, racedef: params, uma, options: { seed, usePosKeep } } });
+		worker2.postMessage({ msg: 'chart', data: { skills: skills2, course, racedef: params, uma, options: { seed, usePosKeep } } });
 	}
 
 	function basinnChartSelection(skillId) {
@@ -601,12 +604,12 @@ function App(props) {
 	}
 
 	function addSkillFromTable(skillId) {
-		postEvent('addSkillFromTable', {skillId});
+		postEvent('addSkillFromTable', { skillId });
 		setUma1(uma1.set('skills', uma1.skills.set(skillmeta[skillId].groupId, skillId)));
 	}
 
 	function showPopover(skillId) {
-		postEvent('showPopover', {skillId});
+		postEvent('showPopover', { skillId });
 		setPopoverSkill(skillId);
 	}
 
@@ -630,21 +633,21 @@ function App(props) {
 	}
 
 	const mid = Math.floor(results.length / 2);
-	const median = results.length % 2 == 0 ? (results[mid-1] + results[mid]) / 2 : results[mid];
-	const mean = results.reduce((a,b) => a+b, 0) / results.length;
+	const median = results.length % 2 == 0 ? (results[mid - 1] + results[mid]) / 2 : results[mid];
+	const mean = results.reduce((a, b) => a + b, 0) / results.length;
 
 	const colors = [
-		{stroke: 'rgb(42, 119, 197)', fill: 'rgba(42, 119, 197, 0.7)'},
-		{stroke: 'rgb(197, 42, 42)', fill: 'rgba(197, 42, 42, 0.7)'}
+		{ stroke: 'rgb(42, 119, 197)', fill: 'rgba(42, 119, 197, 0.7)' },
+		{ stroke: 'rgb(197, 42, 42)', fill: 'rgba(197, 42, 42, 0.7)' }
 	];
-	const skillActivations = chartData == null ? [] : chartData.sk.flatMap((a,i) => {
+	const skillActivations = chartData == null ? [] : chartData.sk.flatMap((a, i) => {
 		return Array.from(a.keys()).flatMap(id => {
 			if (NO_SHOW.indexOf(skillmeta[id].iconId) > -1) return [];
 			else return a.get(id).map(ar => ({
 				type: RegionDisplayType.Textbox,
 				color: colors[i],
 				text: skillnames[id][0],
-				regions: [{start: ar[0], end: ar[1]}]
+				regions: [{ start: ar[0], end: ar[1] }]
 			}));
 		});
 	});
@@ -669,17 +672,17 @@ function App(props) {
 									maxrun: ['Maximum', 'Set chart display to the run with maximum bashin difference'],
 									meanrun: ['Mean', 'Set chart display to a run representative of the mean bashin difference'],
 									medianrun: ['Median', 'Set chart display to a run representative of the median bashin difference']
-								}).map(([k,label]) =>
+								}).map(([k, label]) =>
 									<th scope="col" class={displaying == k ? 'selected' : ''} title={label[1]} onClick={() => setChartData(k)}>{label[0]}</th>
 								)}
 							</tr>
 						</tfoot>
 						<tbody>
 							<tr>
-								<td onClick={() => setChartData('minrun')}>{results[0].toFixed(2)}<span class="unit-basinn">{CC_GLOBAL?'lengths':'バ身'}</span></td>
-								<td onClick={() => setChartData('maxrun')}>{results[results.length-1].toFixed(2)}<span class="unit-basinn">{CC_GLOBAL?'lengths':'バ身'}</span></td>
-								<td onClick={() => setChartData('meanrun')}>{mean.toFixed(2)}<span class="unit-basinn">{CC_GLOBAL?'lengths':'バ身'}</span></td>
-								<td onClick={() => setChartData('medianrun')}>{median.toFixed(2)}<span class="unit-basinn">{CC_GLOBAL?'lengths':'バ身'}</span></td>
+								<td onClick={() => setChartData('minrun')}>{results[0].toFixed(2)}<span class="unit-basinn">{CC_GLOBAL ? 'lengths' : 'バ身'}</span></td>
+								<td onClick={() => setChartData('maxrun')}>{results[results.length - 1].toFixed(2)}<span class="unit-basinn">{CC_GLOBAL ? 'lengths' : 'バ身'}</span></td>
+								<td onClick={() => setChartData('meanrun')}>{mean.toFixed(2)}<span class="unit-basinn">{CC_GLOBAL ? 'lengths' : 'バ身'}</span></td>
+								<td onClick={() => setChartData('medianrun')}>{median.toFixed(2)}<span class="unit-basinn">{CC_GLOBAL ? 'lengths' : 'バ身'}</span></td>
 							</tr>
 						</tbody>
 					</table>
@@ -762,8 +765,8 @@ function App(props) {
 						</div>
 						{
 							mode == Mode.Compare
-							? <button id="run" onClick={doComparison} tabindex={1}>COMPARE</button>
-							: <button id="run" onClick={doBasinnChart} tabindex={1}>RUN</button>
+								? <button id="run" onClick={doComparison} tabindex={1}>COMPARE</button>
+								: <button id="run" onClick={doBasinnChart} tabindex={1}>RUN</button>
 						}
 						<a href="#" onClick={copyStateUrl}>Copy link</a>
 						<RacePresets courseId={courseId} racedef={racedef} set={(courseId, racedef) => { setCourseId(courseId); setRaceDef(racedef); }} />
