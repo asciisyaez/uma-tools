@@ -89,6 +89,15 @@
 	text-align: center;
 	width: 100%;
 	cursor: pointer;
+	border-radius: 6px;
+}
+
+.umaSelectInput:focus {
+	outline: none;
+}
+
+.umaSelectInput:focus-visible {
+	box-shadow: 0 0 0 2px var(--color-bg-primary, #0f172a), 0 0 0 4px var(--color-accent-primary, #10b981);
 }
 
 .umaSelectInput::placeholder {
@@ -221,14 +230,19 @@
 	font-size: 1.15em;
 	font-weight: 600;
 	margin-left: 8px;
-	padding: 0;
+	padding: 2px 4px;
 	width: 70px;
 	transition: color 0.2s ease;
+	border-radius: 4px;
 }
 
 .horseParam>input:focus {
 	outline: none;
 	color: var(--color-accent-primary, #10b981);
+}
+
+.horseParam>input:focus-visible {
+	box-shadow: 0 0 0 2px var(--color-bg-secondary, #1e293b), 0 0 0 4px var(--color-accent-primary, #10b981);
 }
 
 /* ----- Horse Aptitudes ----- */
@@ -270,6 +284,15 @@
 	cursor: pointer;
 	padding: 2px 8px;
 	font-weight: 600;
+	border-radius: 4px;
+}
+
+.horseAptitudeSelect>span:focus {
+	outline: none;
+}
+
+.horseAptitudeSelect>span:focus-visible {
+	box-shadow: 0 0 0 2px var(--color-bg-secondary, #1e293b), 0 0 0 4px var(--color-accent-primary, #10b981);
 }
 
 .horseAptitudeSelect>span::after {
@@ -321,6 +344,15 @@
 	right: 4px;
 	text-align: right;
 	cursor: pointer;
+	border-radius: 4px;
+}
+
+.horseStrategySelect:focus {
+	outline: none;
+}
+
+.horseStrategySelect:focus-visible {
+	box-shadow: 0 0 0 2px var(--color-bg-secondary, #1e293b), 0 0 0 4px var(--color-accent-primary, #10b981);
 }
 
 /* ----- Skill Header ----- */
@@ -413,6 +445,16 @@
 .addSkillButton:hover {
 	border-color: var(--color-accent-primary, #10b981);
 	color: var(--color-accent-primary, #10b981);
+}
+
+.addSkillButton:focus {
+	outline: none;
+}
+
+.addSkillButton:focus-visible {
+	border-color: var(--color-accent-primary, #10b981);
+	color: var(--color-accent-primary, #10b981);
+	box-shadow: 0 0 0 2px var(--color-bg-tertiary, #334155), 0 0 0 4px var(--color-accent-primary, #10b981);
 }
 
 .addSkillButton>span {
