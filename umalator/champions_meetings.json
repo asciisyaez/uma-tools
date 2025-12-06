@@ -1,7 +1,7 @@
 [
     {
         "type": "CM",
-        "name": "Taurus Cup",
+        "name": "CM01 Taurus Cup",
         "date": "2021-05-14",
         "courseId": 10606,
         "season": "Spring",
@@ -11,7 +11,7 @@
     },
     {
         "type": "CM",
-        "name": "Gemini Cup",
+        "name": "CM02 Gemini Cup",
         "date": "2021-06-14",
         "courseId": 10811,
         "season": "Spring",
@@ -21,7 +21,7 @@
     },
     {
         "type": "CM",
-        "name": "Cancer Cup",
+        "name": "CM03 Cancer Cup",
         "date": "2021-07-23",
         "courseId": 10602,
         "season": "Summer",
@@ -31,7 +31,7 @@
     },
     {
         "type": "CM",
-        "name": "Leo Cup",
+        "name": "CM04 Leo Cup",
         "date": "2021-08-24",
         "courseId": 10906,
         "season": "Summer",
@@ -41,7 +41,7 @@
     },
     {
         "type": "CM",
-        "name": "Virgo Cup",
+        "name": "CM05 Virgo Cup",
         "date": "2021-09-21",
         "courseId": 10804,
         "season": "Autumn",
@@ -51,7 +51,7 @@
     },
     {
         "type": "CM",
-        "name": "Libra Cup",
+        "name": "CM06 Libra Cup",
         "date": "2021-10-22",
         "courseId": 10810,
         "season": "Autumn",
@@ -61,7 +61,7 @@
     },
     {
         "type": "CM",
-        "name": "Scorpio Cup",
+        "name": "CM07 Scorpio Cup",
         "date": "2021-11-23",
         "courseId": 10604,
         "season": "Autumn",
@@ -71,7 +71,7 @@
     },
     {
         "type": "CM",
-        "name": "Sagittarius Cup",
+        "name": "CM08 Sagittarius Cup",
         "date": "2021-12-21",
         "courseId": 10506,
         "season": "Winter",
@@ -81,7 +81,7 @@
     },
     {
         "type": "CM",
-        "name": "Capricorn Cup",
+        "name": "CM09 Capricorn Cup",
         "date": "2022-01-22",
         "courseId": 10701,
         "season": "Winter",
@@ -91,7 +91,7 @@
     },
     {
         "type": "CM",
-        "name": "Aquarius Cup",
+        "name": "CM10 Aquarius Cup",
         "date": "2022-02-18",
         "courseId": 10611,
         "season": "Winter",
@@ -101,7 +101,7 @@
     },
     {
         "type": "CM",
-        "name": "Pisces Cup",
+        "name": "CM11 Pisces Cup",
         "date": "2022-03-22",
         "courseId": 10811,
         "season": "Spring",
@@ -111,7 +111,7 @@
     },
     {
         "type": "CM",
-        "name": "Aries Cup",
+        "name": "CM12 Aries Cup",
         "date": "2022-04-22",
         "courseId": 10504,
         "season": "Spring",
@@ -121,7 +121,7 @@
     },
     {
         "type": "CM",
-        "name": "Taurus Cup",
+        "name": "CM13 Taurus Cup",
         "date": "2022-05-24",
         "courseId": 10606,
         "season": "Spring",
@@ -131,7 +131,7 @@
     },
     {
         "type": "CM",
-        "name": "Gemini Cup",
+        "name": "CM14 Gemini Cup",
         "date": "2022-06-14",
         "courseId": 10602,
         "season": "Spring",
@@ -141,7 +141,7 @@
     },
     {
         "type": "CM",
-        "name": "Cancer Cup",
+        "name": "CM15 Cancer Cup",
         "date": "2022-07-14",
         "courseId": 10906,
         "season": "Summer",
@@ -151,7 +151,7 @@
     },
     {
         "type": "CM",
-        "name": "Leo Cup",
+        "name": "CM16 Leo Cup",
         "date": "2022-08-13",
         "courseId": 10501,
         "season": "Summer",
@@ -161,7 +161,7 @@
     },
     {
         "type": "CM",
-        "name": "Virgo Cup",
+        "name": "CM17 Virgo Cup",
         "date": "2022-09-15",
         "courseId": 11103,
         "season": "Autumn",
@@ -171,7 +171,7 @@
     },
     {
         "type": "CM",
-        "name": "Libra Cup",
+        "name": "CM18 Libra Cup",
         "date": "2022-10-14",
         "courseId": 10804,
         "season": "Autumn",
@@ -181,7 +181,7 @@
     },
     {
         "type": "CM",
-        "name": "Scorpio Cup",
+        "name": "CM19 Scorpio Cup",
         "date": "2022-11-13",
         "courseId": 10906,
         "season": "Autumn",
@@ -191,7 +191,7 @@
     },
     {
         "type": "CM",
-        "name": "Sagittarius Cup",
+        "name": "CM20 Sagittarius Cup",
         "date": "2022-12-13",
         "courseId": 10506,
         "season": "Winter",
@@ -201,7 +201,7 @@
     },
     {
         "type": "CM",
-        "name": "Capricorn Cup",
+        "name": "CM21 Capricorn Cup",
         "date": "2023-01-17",
         "courseId": 10701,
         "season": "Winter",
@@ -211,7 +211,7 @@
     },
     {
         "type": "CM",
-        "name": "Aquarius Cup",
+        "name": "CM22 Aquarius Cup",
         "date": "2023-02-17",
         "courseId": 10602,
         "season": "Winter",
@@ -221,7 +221,7 @@
     },
     {
         "type": "CM",
-        "name": "Pisces Cup",
+        "name": "CM23 Pisces Cup",
         "date": "2023-03-18",
         "courseId": 10906,
         "season": "Spring",
@@ -231,7 +231,7 @@
     },
     {
         "type": "CM",
-        "name": "Aries Cup",
+        "name": "CM24 Aries Cup",
         "date": "2023-04-15",
         "courseId": 10504,
         "season": "Spring",
@@ -241,7 +241,7 @@
     },
     {
         "type": "CM",
-        "name": "Taurus Cup",
+        "name": "CM25 Taurus Cup",
         "date": "2023-05-14",
         "courseId": 10606,
         "season": "Spring",
@@ -251,7 +251,7 @@
     },
     {
         "type": "CM",
-        "name": "Gemini Cup",
+        "name": "CM26 Gemini Cup",
         "date": "2023-06-11",
         "courseId": 10811,
         "season": "Spring",
@@ -261,7 +261,7 @@
     },
     {
         "type": "CM",
-        "name": "Cancer Cup",
+        "name": "CM27 Cancer Cup",
         "date": "2023-07-14",
         "courseId": 10504,
         "season": "Summer",
@@ -271,7 +271,7 @@
     },
     {
         "type": "CM",
-        "name": "Leo Cup",
+        "name": "CM28 Leo Cup",
         "date": "2023-08-14",
         "courseId": 10701,
         "season": "Summer",
@@ -281,7 +281,7 @@
     },
     {
         "type": "CM",
-        "name": "Virgo Cup",
+        "name": "CM29 Virgo Cup",
         "date": "2023-09-14",
         "courseId": 10903,
         "season": "Autumn",
@@ -291,7 +291,7 @@
     },
     {
         "type": "CM",
-        "name": "CLASSIC",
+        "name": "CM30 CLASSIC",
         "date": "2023-10-13",
         "courseId": 11504,
         "season": "Autumn",
@@ -301,7 +301,7 @@
     },
     {
         "type": "CM",
-        "name": "LONG",
+        "name": "CM31 LONG",
         "date": "2023-12-14",
         "courseId": 10506,
         "season": "Winter",
@@ -311,7 +311,7 @@
     },
     {
         "type": "CM",
-        "name": "SPRINT",
+        "name": "CM32 SPRINT",
         "date": "2024-02-18",
         "courseId": 10802,
         "season": "Winter",
@@ -321,7 +321,7 @@
     },
     {
         "type": "CM",
-        "name": "MILE",
+        "name": "CM33 MILE",
         "date": "2024-04-13",
         "courseId": 10804,
         "season": "Spring",
