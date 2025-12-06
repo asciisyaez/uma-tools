@@ -78,7 +78,7 @@ const presets = (CC_GLOBAL ? presetsData.map(p => ({
 			grade: Grade.G1
 		})
 	}))
-	.sort((a, b) => +b.date - +a.date);
+	.sort((a, b) => +a.date - +b.date);
 
 const DEFAULT_PRESET = presets[Math.max(presets.findIndex((now => p => new Date(p.date.getFullYear(), p.date.getUTCMonth() + 1, 0) < now)(new Date())) - 1, 0)];
 const DEFAULT_COURSE_ID = DEFAULT_PRESET.courseId;
