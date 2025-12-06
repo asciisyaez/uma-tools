@@ -461,3 +461,104 @@
 	font-size: 1.8em;
 	margin: 0 6px;
 }
+
+/* --------------------------------------------------------------------------
+   Mobile Responsive Styles
+   -------------------------------------------------------------------------- */
+@media (max-width: 640px),
+(max-height: 500px) and (max-width: 900px) {
+	.horseDef {
+		overflow: visible;
+	}
+
+	/* Compact uma selector */
+	.umaSelector {
+		grid-template-columns: 80px 1fr;
+		grid-template-rows: repeat(2, 40px);
+		gap: 4px;
+		padding: 8px 12px;
+	}
+
+	.umaSelectorIconsBox>img:first-child {
+		width: 70px;
+	}
+
+	.umaSelectorIconsBox>img:last-child {
+		width: 28px;
+		margin-left: -10px;
+	}
+
+	.umaSelectInput {
+		font-size: 1em;
+	}
+
+	.umaEpithet>span {
+		font-size: 0.75em;
+	}
+
+	/* Compact horse params - 3 columns instead of 5 for readability */
+	.horseParams {
+		grid-template-columns: repeat(3, 1fr);
+		margin: 8px;
+	}
+
+	.horseParamHeader {
+		font-size: 0.7em;
+		padding: 4px 2px;
+	}
+
+	.horseParamHeader>span {
+		display: none;
+	}
+
+	.horseParam {
+		padding: 4px 6px;
+	}
+
+	.horseParam>img {
+		width: 18px;
+	}
+
+	.horseParam>input {
+		font-size: 0.95em;
+		width: 50px;
+		margin-left: 4px;
+	}
+
+	/* Compact aptitudes */
+	.horseAptitudes {
+		grid-template-columns: 1fr;
+		gap: 4px;
+		margin: 0 8px 8px;
+	}
+
+	.horseAptitudes>div {
+		font-size: 0.8em;
+		height: 2em;
+		padding: 0 8px;
+	}
+
+	/* Skill header */
+	.horseSkillHeader {
+		margin: 8px;
+		padding: 6px 12px;
+		font-size: 0.9em;
+	}
+
+	/* Single column skill list */
+	.horseSkillList {
+		grid-template-columns: 1fr;
+		gap: 6px;
+		padding: 8px;
+	}
+
+	.horseSkillListWrapper {
+		margin: 0 4px 4px;
+	}
+
+	/* Skill picker modal */
+	.horseSkillPickerWrapper {
+		top: 10px;
+		padding: 12px;
+	}
+}

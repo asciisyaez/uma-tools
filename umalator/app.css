@@ -773,8 +773,8 @@ body {
 
 @media (max-width: 768px) {
 	#app {
-		padding: var(--spacing-md);
-		gap: var(--spacing-md);
+		padding: var(--spacing-sm);
+		gap: var(--spacing-sm);
 	}
 
 	#buttonsRow {
@@ -784,5 +784,149 @@ body {
 
 	#umaPane {
 		min-width: auto;
+	}
+}
+
+/* --------------------------------------------------------------------------
+   Mobile Landscape & Portrait - Full touch support
+   Targets: phones in landscape (low height) or narrow portrait screens
+   -------------------------------------------------------------------------- */
+@media (max-width: 640px),
+(max-height: 500px) and (max-width: 900px) {
+
+	/* Enable scrolling - this is the critical fix */
+	#app {
+		display: flex;
+		flex-direction: column;
+		height: auto;
+		min-height: 100vh;
+		max-height: none;
+		overflow: auto;
+		overflow-x: hidden;
+		-webkit-overflow-scrolling: touch;
+		padding: var(--spacing-sm);
+		gap: var(--spacing-sm);
+	}
+
+	/* Reorder: Track view first, then Uma pane */
+	#topPane {
+		order: 1;
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+		width: 100%;
+	}
+
+	#umaPane {
+		order: 2;
+		width: 100%;
+		min-height: auto;
+	}
+
+	#umaPane>div {
+		height: auto;
+		min-height: 400px;
+	}
+
+	/* Compact buttons row */
+	#buttonsRow {
+		flex-direction: row;
+		flex-wrap: wrap;
+		gap: var(--spacing-sm);
+		padding: var(--spacing-sm);
+		justify-content: center;
+	}
+
+	#buttonsRow>div {
+		flex-wrap: wrap;
+		justify-content: center;
+	}
+
+	#buttonsRowSpace {
+		display: none;
+	}
+
+	/* Compact run pane */
+	#runPane {
+		padding: var(--spacing-sm) var(--spacing-md);
+		gap: var(--spacing-sm);
+	}
+
+	#run {
+		padding: var(--spacing-sm) var(--spacing-md);
+		font-size: 1em;
+	}
+
+	/* Compact track selections */
+	.trackSelect>select {
+		padding: var(--spacing-xs) var(--spacing-sm);
+		font-size: 0.85em;
+	}
+
+	/* Results pane */
+	#resultsPaneWrapper {
+		order: 3;
+		width: 100%;
+	}
+
+	#resultsPane {
+		width: 100%;
+		padding: var(--spacing-sm);
+	}
+
+	#resultsSummary>tbody td {
+		font-size: 1.2em;
+		min-width: 60px;
+		padding: var(--spacing-sm);
+		height: 48px;
+	}
+
+	/* Info tables - make scrollable */
+	#infoTables tbody,
+	#infoTables>table tr {
+		width: 100%;
+		max-width: 100%;
+	}
+
+	/* Uma overlay - full width on mobile */
+	#umaOverlay {
+		width: 100%;
+		height: auto;
+		max-height: 90vh;
+		border-radius: var(--radius-md);
+		padding: var(--spacing-sm);
+		gap: var(--spacing-sm);
+		flex-direction: column;
+	}
+
+	/* Basinn chart popover */
+	.basinnChartPopover {
+		width: 100%;
+		max-width: 100%;
+		flex-direction: column;
+		height: auto;
+	}
+
+	/* Skill picker modal - better mobile fit */
+	.horseSkillPickerWrapper {
+		left: 2%;
+		width: 96%;
+		padding: var(--spacing-sm);
+	}
+}
+
+/* Extra small screens (very narrow phones) */
+@media (max-width: 400px) {
+	#app {
+		padding: var(--spacing-xs);
+		gap: var(--spacing-xs);
+	}
+
+	#buttonsRow {
+		padding: var(--spacing-xs);
+	}
+
+	.trackSelect>select {
+		font-size: 0.75em;
 	}
 }
