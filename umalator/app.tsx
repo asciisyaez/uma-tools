@@ -522,6 +522,8 @@ function App(props) {
 	const [nsamples, setSamples] = useState(DEFAULT_SAMPLES);
 	const [seed, setSeed] = useState(DEFAULT_SEED);
 	const [usePosKeep, togglePosKeep] = useReducer((b, _) => !b, true);
+	const usePosKeepRef = useRef(usePosKeep);
+	usePosKeepRef.current = usePosKeep;
 	const [showHp, toggleShowHp] = useReducer((b, _) => !b, false);
 	const [{ courseId, results, runData, chartData, displaying }, setSimState] = useReducer(updateResultsState, EMPTY_RESULTS_STATE);
 	const setCourseId = setSimState;
@@ -585,7 +587,7 @@ function App(props) {
 				setCourseId(o.courseId);
 				setSamples(o.nsamples);
 				setSeed(o.seed);
-				if (o.usePosKeep != usePosKeep) togglePosKeep(0);
+				if (o.usePosKeep != usePosKeepRef.current) togglePosKeep(0);
 				setRaceDef(o.racedef);
 				setUma1(o.uma1);
 				setUma2(o.uma2);
