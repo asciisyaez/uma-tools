@@ -1,39 +1,45 @@
+/* ==========================================================================
+   RaceTrack Component - Modern Dark Theme
+   ========================================================================== */
+
 .distanceMarker {
+	fill: var(--color-text-primary, #f1f5f9);
 	font-weight: 600;
 	paint-order: stroke;
-	stroke: white;
-	stroke-width: 2px;
+	stroke: var(--color-bg-primary, #0f172a);
+	stroke-width: 3px;
 }
 
 .sectionText {
 	dominant-baseline: central;
+	fill: var(--color-text-primary, #f1f5f9);
 	font-size: 12px;
 	font-weight: 600;
 	paint-order: stroke;
-	stroke: white;
-	stroke-width: 2px;
+	stroke: var(--color-bg-primary, #0f172a);
+	stroke-width: 3px;
 	text-anchor: middle;
 }
 
 .racetrackName {
-	color: rgb(121,64,22);
-	font: 22px bold sans-serif;
-	margin-bottom: 0.3em;
+	color: var(--color-text-primary, #f1f5f9);
+	font: 22px bold Inter, sans-serif;
+	margin-bottom: 0.5em;
 	text-align: center;
-	text-stroke: 1px rgb(121,64,22);
-	-webkit-text-stroke: 1px rgb(121,64,22);
-	text-shadow: -1px -1px 0 white, 1px -1px 0 white, -1px 1px 0 white, 1px 1px 0 white;
+	text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .racetrackStatThresholds {
-	font-size: 0.8em;
+	color: var(--color-text-secondary, #94a3b8);
+	font-size: 0.85em;
 	text-align: center;
 }
 
 .mouseoverText {
+	fill: var(--color-text-primary, #f1f5f9);
 	font-size: 12px;
 	font-weight: 600;
 	paint-order: stroke;
-	stroke: white;
-	stroke-width: 2px;
+	stroke: var(--color-bg-primary, #0f172a);
+	stroke-width: 3px;
 }
