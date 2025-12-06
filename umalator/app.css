@@ -7,53 +7,64 @@
    -------------------------------------------------------------------------- */
 :root {
 	/* Color Palette - Dark Theme with Emerald Accents */
-	--color-bg-primary: #0f172a;       /* Slate 900 */
-	--color-bg-secondary: #1e293b;     /* Slate 800 */
-	--color-bg-tertiary: #334155;      /* Slate 700 */
+	--color-bg-primary: #0f172a;
+	/* Slate 900 */
+	--color-bg-secondary: #1e293b;
+	/* Slate 800 */
+	--color-bg-tertiary: #334155;
+	/* Slate 700 */
 	--color-bg-card: rgba(30, 41, 59, 0.85);
 	--color-bg-glass: rgba(15, 23, 42, 0.7);
-	
+
 	/* Accent Colors */
-	--color-accent-primary: #10b981;   /* Emerald 500 */
-	--color-accent-secondary: #f97316; /* Orange 500 */
-	--color-accent-tertiary: #8b5cf6;  /* Violet 500 */
-	--color-accent-light: #34d399;     /* Emerald 400 */
-	
+	--color-accent-primary: #10b981;
+	/* Emerald 500 */
+	--color-accent-secondary: #f97316;
+	/* Orange 500 */
+	--color-accent-tertiary: #8b5cf6;
+	/* Violet 500 */
+	--color-accent-light: #34d399;
+	/* Emerald 400 */
+
 	/* Text Colors */
-	--color-text-primary: #f1f5f9;     /* Slate 100 */
-	--color-text-secondary: #94a3b8;   /* Slate 400 */
-	--color-text-muted: #64748b;       /* Slate 500 */
-	--color-text-accent: #6ee7b7;      /* Emerald 300 */
-	
+	--color-text-primary: #f1f5f9;
+	/* Slate 100 */
+	--color-text-secondary: #94a3b8;
+	/* Slate 400 */
+	--color-text-muted: #64748b;
+	/* Slate 500 */
+	--color-text-accent: #6ee7b7;
+	/* Emerald 300 */
+
 	/* Border Colors */
 	--color-border: rgba(148, 163, 184, 0.2);
 	--color-border-accent: rgba(16, 185, 129, 0.5);
-	
+
 	/* Shadows */
 	--shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
 	--shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
 	--shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
 	--shadow-glow: 0 0 20px rgba(16, 185, 129, 0.3);
-	
+
 	/* Spacing */
 	--spacing-xs: 4px;
 	--spacing-sm: 8px;
 	--spacing-md: 16px;
 	--spacing-lg: 24px;
 	--spacing-xl: 32px;
-	
+
 	/* Border Radius */
 	--radius-sm: 6px;
 	--radius-md: 12px;
 	--radius-lg: 16px;
 	--radius-xl: 24px;
 	--radius-full: 9999px;
-	
+
 	/* Transitions */
 	--transition-fast: 150ms ease;
 	--transition-normal: 250ms ease;
 	--transition-slow: 350ms ease;
-	
+
 	/* Glass Effect */
 	--glass-blur: 12px;
 	--glass-bg: rgba(30, 41, 59, 0.6);
@@ -72,13 +83,15 @@
 	src: local("Noto Sans JP"), url("/uma-tools/fonts/NotoSansJP-VariableFont_wght.ttf") format("truetype");
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
 	box-sizing: border-box;
 }
 
 body {
 	background: var(--color-bg-primary);
-	background-image: 
+	background-image:
 		radial-gradient(ellipse at 20% 0%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
 		radial-gradient(ellipse at 80% 100%, rgba(139, 92, 246, 0.06) 0%, transparent 50%);
 	color: var(--color-text-primary);
@@ -92,7 +105,9 @@ body {
 }
 
 /* Utility Classes */
-.hidden { display: none !important; }
+.hidden {
+	display: none !important;
+}
 
 /* --------------------------------------------------------------------------
    Main App Layout
@@ -100,13 +115,14 @@ body {
 #app {
 	display: grid;
 	gap: var(--spacing-lg);
-	grid-template-columns: minmax(320px, 720px) 1fr;
+	grid-template-columns: 1fr 700px;
 	grid-template-rows: auto 1fr;
 	min-height: 100vh;
 	padding: var(--spacing-lg);
 	max-width: 1800px;
 	margin: 0 auto;
 }
+
 
 /* --------------------------------------------------------------------------
    Top Pane (Track & Controls)
@@ -188,7 +204,7 @@ body {
 	left: -100%;
 	width: 100%;
 	height: 100%;
-	background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+	background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
 	transition: left 0.5s ease;
 }
 
@@ -220,7 +236,7 @@ body {
 	flex-wrap: wrap;
 }
 
-.trackSelect > select {
+.trackSelect>select {
 	background: var(--color-bg-tertiary);
 	border: 1px solid var(--color-border);
 	border-radius: var(--radius-sm);
@@ -230,20 +246,20 @@ body {
 	transition: all var(--transition-fast);
 }
 
-.trackSelect > select:hover {
+.trackSelect>select:hover {
 	border-color: var(--color-accent-primary);
 }
 
-.trackSelect > select:first-child {
+.trackSelect>select:first-child {
 	border-radius: var(--radius-sm) 0 0 var(--radius-sm);
 	border-right: none;
 }
 
-.trackSelect > select:last-child {
+.trackSelect>select:last-child {
 	border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
-#buttonsRow > div {
+#buttonsRow>div {
 	display: flex;
 	align-items: center;
 }
@@ -292,13 +308,13 @@ body {
 /* --------------------------------------------------------------------------
    Race Track View
    -------------------------------------------------------------------------- */
-#rtMouseOverBox > text {
+#rtMouseOverBox>text {
 	paint-order: stroke;
 	stroke: var(--color-bg-primary);
 	stroke-width: 3px;
 }
 
-.hasResults .racetrackView > svg text:not(.mouseoverText) {
+.hasResults .racetrackView>svg text:not(.mouseoverText) {
 	filter: opacity(0.3);
 }
 
@@ -342,7 +358,7 @@ body {
 	border-spacing: var(--spacing-md) var(--spacing-sm);
 }
 
-#resultsSummary > tfoot th {
+#resultsSummary>tfoot th {
 	color: var(--color-text-secondary);
 	cursor: pointer;
 	font-size: 0.85em;
@@ -350,17 +366,17 @@ body {
 	transition: color var(--transition-fast);
 }
 
-#resultsSummary > tfoot th:hover,
-#resultsSummary > tfoot th.selected {
+#resultsSummary>tfoot th:hover,
+#resultsSummary>tfoot th.selected {
 	color: var(--color-accent-primary);
 }
 
-#resultsSummary > tfoot th.selected {
+#resultsSummary>tfoot th.selected {
 	text-decoration: underline;
 	text-underline-offset: 4px;
 }
 
-#resultsSummary > tbody td {
+#resultsSummary>tbody td {
 	background: var(--color-bg-secondary);
 	border: 2px solid var(--color-border);
 	border-radius: var(--radius-xl);
@@ -376,7 +392,7 @@ body {
 	transition: all var(--transition-fast);
 }
 
-#resultsSummary > tbody td:hover {
+#resultsSummary>tbody td:hover {
 	border-color: var(--color-accent-primary);
 	transform: translateY(-2px);
 	box-shadow: var(--shadow-md);
@@ -397,7 +413,7 @@ body {
 	min-width: 300px;
 }
 
-#infoTables > table {
+#infoTables>table {
 	border-collapse: collapse;
 	width: 100%;
 }
@@ -415,19 +431,20 @@ body {
 	overflow-y: auto;
 }
 
-#infoTables tbody::before, #infoTables tbody::after {
+#infoTables tbody::before,
+#infoTables tbody::after {
 	content: '';
 	display: block;
 	height: var(--spacing-md);
 }
 
-#infoTables > table tr {
+#infoTables>table tr {
 	display: table;
 	table-layout: fixed;
 	width: 450px;
 }
 
-#infoTables > table th {
+#infoTables>table th {
 	color: var(--color-text-secondary);
 	font-weight: 600;
 	overflow: hidden;
@@ -436,7 +453,7 @@ body {
 	font-size: 0.9em;
 }
 
-#infoTables > table td {
+#infoTables>table td {
 	font-family: 'SF Mono', 'Fira Code', monospace;
 	width: 160px;
 	color: var(--color-text-primary);
@@ -447,15 +464,16 @@ body {
    -------------------------------------------------------------------------- */
 #umaPane {
 	grid-row: 1 / 3;
-	min-width: 680px;
+	grid-column: 2;
+	width: 100%;
 }
 
-#umaPane > div {
+#umaPane>div {
 	display: none;
 	height: 100%;
 }
 
-#umaPane > div.selected {
+#umaPane>div.selected {
 	display: block;
 }
 
@@ -535,12 +553,12 @@ body {
 	width: 12px;
 }
 
-.selected > #expandBtn {
+.selected>#expandBtn {
 	background: var(--color-bg-tertiary);
 	border: 1px solid var(--color-border);
 }
 
-.selected > #expandBtn::after {
+.selected>#expandBtn::after {
 	border-color: var(--color-text-secondary);
 }
 
@@ -583,7 +601,7 @@ body {
 	justify-content: center;
 }
 
-#copyUmaButtons > div {
+#copyUmaButtons>div {
 	background: var(--color-bg-secondary);
 	border: 1px solid var(--color-border);
 	border-radius: var(--radius-md);
@@ -595,12 +613,12 @@ body {
 	transition: all var(--transition-fast);
 }
 
-#copyUmaButtons > div:hover {
+#copyUmaButtons>div:hover {
 	border-color: var(--color-accent-primary);
 	transform: scale(1.05);
 }
 
-#copyUmaButtons > div::after {
+#copyUmaButtons>div::after {
 	border-top: 2px solid var(--color-text-secondary);
 	border-right: 2px solid var(--color-text-secondary);
 	content: '';
@@ -702,18 +720,37 @@ body {
    Animations
    -------------------------------------------------------------------------- */
 @keyframes fadeIn {
-	from { opacity: 0; transform: translateY(10px); }
-	to { opacity: 1; transform: translateY(0); }
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }
 
 @keyframes pulse {
-	0%, 100% { opacity: 1; }
-	50% { opacity: 0.7; }
+
+	0%,
+	100% {
+		opacity: 1;
+	}
+
+	50% {
+		opacity: 0.7;
+	}
 }
 
 @keyframes shimmer {
-	0% { background-position: -200% 0; }
-	100% { background-position: 200% 0; }
+	0% {
+		background-position: -200% 0;
+	}
+
+	100% {
+		background-position: 200% 0;
+	}
 }
 
 /* --------------------------------------------------------------------------
@@ -724,7 +761,7 @@ body {
 		grid-template-columns: 1fr;
 		grid-template-rows: auto auto auto;
 	}
-	
+
 	#umaPane {
 		grid-row: auto;
 		min-width: auto;
@@ -737,12 +774,12 @@ body {
 		padding: var(--spacing-md);
 		gap: var(--spacing-md);
 	}
-	
+
 	#buttonsRow {
 		flex-direction: column;
 		gap: var(--spacing-md);
 	}
-	
+
 	#umaPane {
 		min-width: auto;
 	}
