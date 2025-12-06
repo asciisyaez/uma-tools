@@ -347,566 +347,554 @@ async function compressToBase64(json: string): Promise<string> {
 					// Convert to binary string in smaller chunks to avoid stack overflow
 					let binary = '';
 					for (let i = 0; i < buf.length; i += 8192) {
-						// Fallback: encode JSON directly as base64 (uncompressed)
-						const encoder = new TextEncoder();
-						const bytes = encoder.encode(json);
-						let binary = '';
-						for (let i = 0; i < bytes.length; i += 8192) {
-							binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
-						}
-						return 'raw:' + encodeURIComponent(btoa(binary));
-						if (hash.startsWith('raw:')) {
-							// Uncompressed fallback: decode base64 directly
-							const base64 = hash.slice(4);
-							const binary = atob(decodeURIComponent(base64));
-							const bytes = new Uint8Array(binary.length);
-							for (let i = 0; i < binary.length; i++) {
-								bytes[i] = binary.charCodeAt(i);
-							}
-							const decoder = new TextDecoder();
-							return decoder.decode(bytes);
-						}
+						binary += String.fromCharCode(...buf.subarray(i, i + 8192));
 					}
-				} catch (e) {
-					// Fall through to uncompressed fallback
-					console.warn('Compression failed, using uncompressed fallback:', e);
+					return 'gz:' + btoa(binary);
+				} else {
+					chunks.push(result.value);
+					totalLength += result.value.length;
 				}
 			}
-			// Fallback: encode JSON directly as base64 (uncompressed)
-			return 'raw:' + encodeURIComponent(btoa(unescape(encodeURIComponent(json))));
+		} catch (e) {
+			// Fall through to uncompressed fallback
+			console.warn('Compression failed, using uncompressed fallback:', e);
 		}
+	}
+	// Fallback: encode JSON directly as base64 (uncompressed)
+	return 'raw:' + encodeURIComponent(btoa(unescape(encodeURIComponent(json))));
+}
 
 // Decompress base64-encoded data, handles both 'gz:' (gzip) and 'raw:' (uncompressed) prefixes
 // Also handles legacy data without prefix (assumes gzip for backwards compatibility)
 async function decompressFromBase64(hash: string): Promise<string> {
-			// Check for prefix to determine compression type
-			if (hash.startsWith('raw:')) {
-				// Uncompressed fallback: decode base64 directly
-				const base64 = hash.slice(4);
-				return decodeURIComponent(escape(atob(decodeURIComponent(base64))));
-			}
+	// Check for prefix to determine compression type
+	if (hash.startsWith('raw:')) {
+		// Uncompressed fallback: decode base64 directly
+		const base64 = hash.slice(4);
+		return decodeURIComponent(escape(atob(decodeURIComponent(base64))));
+	}
 
-			// Handle 'gz:' prefix or legacy (no prefix) - both are gzip compressed
-			const base64Data = hash.startsWith('gz:') ? hash.slice(3) : hash;
+	// Handle 'gz:' prefix or legacy (no prefix) - both are gzip compressed
+	const base64Data = hash.startsWith('gz:') ? hash.slice(3) : hash;
 
-			// Try gzip decompression if APIs are available
-			if (canUseDecompressionStream()) {
-				try {
-					const zipped = atob(decodeURIComponent(base64Data));
-					const buf = new Uint8Array(zipped.split('').map(c => c.charCodeAt(0)));
-					const stringStream = new ReadableStream({
-						start(controller) {
-							controller.enqueue(buf);
-							controller.close();
-						}
-					});
-					const unzipped = stringStream.pipeThrough(new DecompressionStream('gzip'));
-					const reader = unzipped.getReader();
-					const decoder = new TextDecoder();
-					let json = '';
-					let result;
-					while (!(result = await reader.read()).done) {
-						json += decoder.decode(result.value, { stream: true });
-					}
-					// Flush any remaining bytes from the decoder
-					json += decoder.decode();
-					return json;
-				} catch (e) {
-					console.warn('Decompression failed:', e);
-					throw new Error('Failed to decompress data and no fallback available for gzip-compressed data');
-				}
-			}
-
-			// No decompression API available and data is compressed - cannot decode
-			throw new Error('DecompressionStream not available and data is gzip-compressed');
-		}
-
-		async function serialize(courseId: number, nsamples: number, seed: number, usePosKeep: boolean, racedef: RaceParams, uma1: HorseState, uma2: HorseState) {
-			const json = JSON.stringify({
-				courseId,
-				nsamples,
-				seed,
-				usePosKeep,
-				racedef: racedef.toJS(),
-				uma1: uma1.set('skills', Array.from(uma1.skills.values())).toJS(),
-				uma2: uma2.set('skills', Array.from(uma2.skills.values())).toJS()
-			});
-			return compressToBase64(json);
-		}
-
-		async function deserialize(hash) {
-			try {
-				const json = await decompressFromBase64(hash);
-				const o = JSON.parse(json);
-				return {
-					courseId: o.courseId,
-					nsamples: o.nsamples,
-					seed: o.seed || DEFAULT_SEED,  // field added later, could be undefined when loading state from existing links
-					usePosKeep: o.usePosKeep,
-					racedef: new RaceParams(o.racedef),
-					uma1: new HorseState(o.uma1).set('skills', SkillSet(o.uma1.skills)),
-					uma2: new HorseState(o.uma2).set('skills', SkillSet(o.uma2.skills))
-				};
-			} catch (e) {
-				console.warn('Failed to deserialize state:', e);
-				return {
-					courseId: DEFAULT_COURSE_ID,
-					nsamples: DEFAULT_SAMPLES,
-					seed: DEFAULT_SEED,
-					usePosKeep: true,
-					racedef: new RaceParams(),
-					uma1: new HorseState(),
-					uma2: new HorseState()
-				};
-			}
-		}
-
-		const EMPTY_RESULTS_STATE = { courseId: DEFAULT_COURSE_ID, results: [], runData: null, chartData: null, displaying: '' };
-		function updateResultsState(state: typeof EMPTY_RESULTS_STATE, o: number | string | { results: any, runData: any }) {
-			if (typeof o == 'number') {
-				return {
-					courseId: o,
-					results: [],
-					runData: null,
-					chartData: null,
-					displaying: ''
-				};
-			} else if (typeof o == 'string') {
-				postEvent('setChartData', { display: o });
-				return {
-					courseId: state.courseId,
-					results: state.results,
-					runData: state.runData,
-					chartData: state.runData != null ? state.runData[o] : null,
-					displaying: o
-				};
-			} else {
-				return {
-					courseId: state.courseId,
-					results: o.results,
-					runData: o.runData,
-					chartData: o.runData[state.displaying || 'meanrun'],
-					displaying: state.displaying || 'meanrun'
-				};
-			}
-		}
-
-		function RacePresets(props) {
-			const id = useId();
-			const selectedIdx = presets.findIndex(p => p.courseId == props.courseId && p.racedef.equals(props.racedef));
-			return (
-				<Fragment>
-					<label for={id}>Preset:</label>
-					<select id={id} onChange={e => { const i = +e.currentTarget.value; i > -1 && props.set(presets[i].courseId, presets[i].racedef); }}>
-						<option value="-1"></option>
-						{presets.map((p, i) => <option value={i} selected={i == selectedIdx}>{p.name || (p.date.getUTCFullYear() + '-' + (100 + p.date.getUTCMonth() + 1).toString().slice(-2) + (p.type == EventType.CM ? ' CM' : ' LOH'))}</option>)}
-					</select>
-				</Fragment>
-			);
-		}
-
-		const baseSkillsToTest = Object.keys(skilldata).filter(id => isGeneralSkill(id) && !isPurpleSkill(id));
-
-		const enum Mode { Compare, Chart }
-		const enum UiStateMsg { SetModeCompare, SetModeChart, SetCurrentIdx0, SetCurrentIdx1, ToggleExpand }
-
-		const DEFAULT_UI_STATE = { mode: Mode.Compare, currentIdx: 0, expanded: false };
-
-		function nextUiState(state: typeof DEFAULT_UI_STATE, msg: UiStateMsg) {
-			switch (msg) {
-				case UiStateMsg.SetModeCompare:
-					return { ...state, mode: Mode.Compare };
-				case UiStateMsg.SetModeChart:
-					return { ...state, mode: Mode.Chart, currentIdx: 0, expanded: false };
-				case UiStateMsg.SetCurrentIdx0:
-					return { ...state, currentIdx: 0 };
-				case UiStateMsg.SetCurrentIdx1:
-					return { ...state, currentIdx: 1 };
-				case UiStateMsg.ToggleExpand:
-					return { ...state, expanded: !state.expanded };
-			}
-		}
-
-		function App(props) {
-			//const [language, setLanguage] = useLanguageSelect();
-			const [skillsOpen, setSkillsOpen] = useState(false);
-			const [racedef, setRaceDef] = useState(() => DEFAULT_PRESET.racedef);
-			const [nsamples, setSamples] = useState(DEFAULT_SAMPLES);
-			const [seed, setSeed] = useState(DEFAULT_SEED);
-			const [usePosKeep, togglePosKeep] = useReducer((b, _) => !b, true);
-			const [showHp, toggleShowHp] = useReducer((b, _) => !b, false);
-			const [{ courseId, results, runData, chartData, displaying }, setSimState] = useReducer(updateResultsState, EMPTY_RESULTS_STATE);
-			const setCourseId = setSimState;
-			const setResults = setSimState;
-			const setChartData = setSimState;
-
-			const [tableData, updateTableData] = useReducer((data, newData) => {
-				const merged = new Map();
-				if (newData == 'reset') {
-					return merged;
-				}
-				data.forEach((v, k) => merged.set(k, v));
-				newData.forEach((v, k) => merged.set(k, v));
-				return merged;
-			}, new Map());
-
-			const [hintLevels, setHintLevels] = useState(() => ImmMap(Object.keys(skilldata).map(id => [id, 0])));
-			function updateHintLevel(id, hint) {
-				setHintLevels(hintLevels.set(id, hint));
-			}
-
-			const [popoverSkill, setPopoverSkill] = useState('');
-
-			function racesetter(prop) {
-				return (value) => setRaceDef(racedef.set(prop, value));
-			}
-
-			const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
-
-			const [uma1, setUma1] = useState(() => new HorseState());
-			const [uma2, setUma2] = useState(() => new HorseState());
-
-			const [lastRunChartUma, setLastRunChartUma] = useState(uma1);
-
-			const [{ mode, currentIdx, expanded }, updateUiState] = useReducer(nextUiState, DEFAULT_UI_STATE);
-			function toggleExpand(e: Event) {
-				e.stopPropagation();
-				postEvent('toggleExpand', { expand: !expanded });
-				updateUiState(UiStateMsg.ToggleExpand);
-			}
-
-			const [worker1, worker2] = [1, 2].map(_ => useMemo(() => {
-				const w = new Worker('./simulator.worker.js');
-				w.addEventListener('message', function (e) {
-					const { type, results } = e.data;
-					switch (type) {
-						case 'compare':
-							setResults(results);
-							break;
-						case 'chart':
-							updateTableData(results);
-							break;
-					}
-				});
-				return w;
-			}, []));
-
-			function loadState() {
-				if (window.location.hash) {
-					deserialize(window.location.hash.slice(1)).then(o => {
-						setCourseId(o.courseId);
-						setSamples(o.nsamples);
-						setSeed(o.seed);
-						if (o.usePosKeep != usePosKeep) togglePosKeep(0);
-						setRaceDef(o.racedef);
-						setUma1(o.uma1);
-						setUma2(o.uma2);
-					});
-				}
-			}
-
-			useEffect(function () {
-				loadState();
-				window.addEventListener('hashchange', loadState);
-				return function () {
-					window.removeEventListener('hashchange', loadState);
-				};
-			}, []);
-
-			function copyStateUrl(e) {
-				e.preventDefault();
-				serialize(courseId, nsamples, seed, usePosKeep, racedef, uma1, uma2).then(hash => {
-					const url = window.location.protocol + '//' + window.location.host + window.location.pathname;
-					window.navigator.clipboard.writeText(url + '#' + hash);
-				});
-			}
-
-			function copyUmaToRight() {
-				postEvent('copyUma', { direction: 'to-right' });
-				setUma2(uma1);
-			}
-
-			function copyUmaToLeft() {
-				postEvent('copyUma', { direction: 'to-left' });
-				setUma1(uma2);
-			}
-
-			function swapUmas() {
-				postEvent('copyUma', { direction: 'swap' });
-				setUma1(uma2);
-				setUma2(uma1);
-			}
-
-			const strings = { skillnames: {}, tracknames: TRACKNAMES_en, common: CC_GLOBAL ? COMMON_global : COMMON_en };
-			const langid = CC_GLOBAL ? 0 : +(props.lang == 'en');
-			Object.keys(skillnames).forEach(id => strings.skillnames[id] = skillnames[id][langid]);
-
-			function doComparison() {
-				postEvent('doComparison', {});
-				worker1.postMessage({
-					msg: 'compare',
-					data: {
-						nsamples,
-						course,
-						racedef: racedefToParams(racedef),
-						uma1: uma1.toJS(),
-						uma2: uma2.toJS(),
-						options: { seed, usePosKeep }
-					}
-				});
-			}
-
-			function doBasinnChart() {
-				postEvent('doBasinnChart', {});
-				setLastRunChartUma(uma1);
-				const params = racedefToParams(racedef, uma1.strategy);
-				const skills = getActivateableSkills(baseSkillsToTest.filter(id => {
-					const existing = uma1.skills.get(skillmeta[id].groupId);
-					const group = skillGroups.get(skillmeta[id].groupId);
-					return !(
-						existing == id || group.indexOf(id) < group.indexOf(existing)
-						|| id[0] == '9' && uma1.skills.includes('1' + id.slice(1))  // reject inherited uniques if we already have the regular version
-						|| id == '92111091' && uma1.skills.includes('111091')  // reject rhein kraft pink inherited unique on her (not covered by the above check since the ID is different)
-					);
-				}), uma1, course, params);
-				const filler = new Map();
-				skills.forEach(id => filler.set(id, getNullRow(id)));
-				const uma = uma1.toJS();
-				const skills1 = skills.slice(0, Math.floor(skills.length / 2));
-				const skills2 = skills.slice(Math.floor(skills.length / 2));
-				updateTableData('reset');
-				updateTableData(filler);
-				worker1.postMessage({ msg: 'chart', data: { skills: skills1, course, racedef: params, uma, options: { seed, usePosKeep } } });
-				worker2.postMessage({ msg: 'chart', data: { skills: skills2, course, racedef: params, uma, options: { seed, usePosKeep } } });
-			}
-
-			function basinnChartSelection(skillId) {
-				const r = tableData.get(skillId);
-				if (r.runData != null) setResults(r);
-			}
-
-			function addSkillFromTable(skillId) {
-				postEvent('addSkillFromTable', { skillId });
-				setUma1(uma1.set('skills', uma1.skills.set(skillmeta[skillId].groupId, skillId)));
-			}
-
-			function showPopover(skillId) {
-				postEvent('showPopover', { skillId });
-				setPopoverSkill(skillId);
-			}
-
-			useEffect(function () {
-				const handleClick = function () {
-					setPopoverSkill('');
-				};
-				document.body.addEventListener('click', handleClick);
-				return function () {
-					document.body.removeEventListener('click', handleClick);
-				};
-			}, []);
-
-			function rtMouseMove(pos) {
-				if (chartData == null) return;
-				document.getElementById('rtMouseOverBox').style.display = 'block';
-				const x = pos * course.distance;
-				const i0 = binSearch(chartData.p[0], x), i1 = binSearch(chartData.p[1], x);
-				document.getElementById('rtV1').textContent = `${chartData.v[0][i0].toFixed(2)} m/s  t=${chartData.t[0][i0].toFixed(2)} s  (${chartData.hp[0][i0].toFixed(0)} hp remaining)`;
-				document.getElementById('rtV2').textContent = `${chartData.v[1][i1].toFixed(2)} m/s  t=${chartData.t[1][i1].toFixed(2)} s  (${chartData.hp[1][i1].toFixed(0)} hp remaining)`;
-			}
-
-			function rtMouseLeave() {
-				document.getElementById('rtMouseOverBox').style.display = 'none';
-			}
-
-			const mid = Math.floor(results.length / 2);
-			const median = results.length % 2 == 0 ? (results[mid - 1] + results[mid]) / 2 : results[mid];
-			const mean = results.reduce((a, b) => a + b, 0) / results.length;
-
-			const colors = [
-				{ stroke: 'rgb(42, 119, 197)', fill: 'rgba(42, 119, 197, 0.7)' },
-				{ stroke: 'rgb(197, 42, 42)', fill: 'rgba(197, 42, 42, 0.7)' }
-			];
-			const skillActivations = chartData == null ? [] : chartData.sk.flatMap((a, i) => {
-				return Array.from(a.keys()).flatMap(id => {
-					if (NO_SHOW.indexOf(skillmeta[id].iconId) > -1) return [];
-					else return a.get(id).map(ar => ({
-						type: RegionDisplayType.Textbox,
-						color: colors[i],
-						text: skillnames[id][0],
-						regions: [{ start: ar[0], end: ar[1] }]
-					}));
-				});
-			});
-
-			const umaTabs = (
-				<Fragment>
-					<div class={`umaTab ${currentIdx == 0 ? 'selected' : ''}`} onClick={() => updateUiState(UiStateMsg.SetCurrentIdx0)}>Umamusume 1</div>
-					{mode == Mode.Compare && <div class={`umaTab ${currentIdx == 1 ? 'selected' : ''}`} onClick={() => updateUiState(UiStateMsg.SetCurrentIdx1)}>Umamusume 2<div id="expandBtn" title="Expand panel" onClick={toggleExpand} /></div>}
-				</Fragment>
-			);
-
-			let resultsPane;
-			if (mode == Mode.Compare && results.length > 0) {
-				resultsPane = (
-					<div id="resultsPaneWrapper">
-						<div id="resultsPane" class="mode-compare">
-							<table id="resultsSummary">
-								<tfoot>
-									<tr>
-										{Object.entries({
-											minrun: ['Minimum', 'Set chart display to the run with minimum bashin difference'],
-											maxrun: ['Maximum', 'Set chart display to the run with maximum bashin difference'],
-											meanrun: ['Mean', 'Set chart display to a run representative of the mean bashin difference'],
-											medianrun: ['Median', 'Set chart display to a run representative of the median bashin difference']
-										}).map(([k, label]) =>
-											<th scope="col" class={displaying == k ? 'selected' : ''} title={label[1]} onClick={() => setChartData(k)}>{label[0]}</th>
-										)}
-									</tr>
-								</tfoot>
-								<tbody>
-									<tr>
-										<td onClick={() => setChartData('minrun')}>{results[0].toFixed(2)}<span class="unit-basinn">{CC_GLOBAL ? 'lengths' : 'バ身'}</span></td>
-										<td onClick={() => setChartData('maxrun')}>{results[results.length - 1].toFixed(2)}<span class="unit-basinn">{CC_GLOBAL ? 'lengths' : 'バ身'}</span></td>
-										<td onClick={() => setChartData('meanrun')}>{mean.toFixed(2)}<span class="unit-basinn">{CC_GLOBAL ? 'lengths' : 'バ身'}</span></td>
-										<td onClick={() => setChartData('medianrun')}>{median.toFixed(2)}<span class="unit-basinn">{CC_GLOBAL ? 'lengths' : 'バ身'}</span></td>
-									</tr>
-								</tbody>
-							</table>
-							<div id="resultsHelp">Negative numbers mean <strong style="color:#2a77c5">Umamusume 1</strong> is faster, positive numbers mean <strong style="color:#c52a2a">Umamusume 2</strong> is faster.</div>
-							<Histogram width={500} height={333} data={results} />
-						</div>
-						<div id="infoTables">
-							<ResultsTable caption="Umamusume 1" color="#2a77c5" chartData={chartData} idx={0} />
-							<ResultsTable caption="Umamusume 2" color="#c52a2a" chartData={chartData} idx={1} />
-						</div>
-					</div>
-				);
-			} else if (mode == Mode.Chart && tableData.size > 0) {
-				const dirty = !uma1.equals(lastRunChartUma);
-				resultsPane = (
-					<div id="resultsPaneWrapper">
-						<div id="resultsPane" class="mode-chart">
-							<div class="basinnChartWrapperWrapper">
-								<BasinnChart data={tableData.values().toArray()} hasSkills={lastRunChartUma.skills} hints={hintLevels}
-									dirty={dirty}
-									updateHint={updateHintLevel}
-									onSelectionChange={basinnChartSelection}
-									onRunTypeChange={setChartData}
-									onDblClickRow={addSkillFromTable}
-									onInfoClick={showPopover} />
-								<button class={`basinnChartRefresh${dirty ? '' : ' hidden'}`} onClick={doBasinnChart}>⟲</button>
-							</div>
-						</div>
-					</div>
-				);
-			} else if (CC_GLOBAL) {
-				resultsPane = (
-					<div id="resultsPaneWrapper">
-						<div id="resultsPane">
-							<IntroText />
-						</div>
-					</div>
-				);
-			} else {
-				resultsPane = null;
-			}
-
-			return (
-				<Language.Provider value={props.lang}>
-					<IntlProvider definition={strings}>
-						<div id="topPane" class={chartData ? 'hasResults' : ''}>
-							<RaceTrack courseid={courseId} width={960} height={240} xOffset={20} yOffset={15} yExtra={20} mouseMove={rtMouseMove} mouseLeave={rtMouseLeave} regions={skillActivations}>
-								<VelocityLines data={chartData} courseDistance={course.distance} width={960} height={250} xOffset={20} showHp={showHp} />
-								<g id="rtMouseOverBox" style="display:none">
-									<text id="rtV1" x="25" y="10" fill="#2a77c5" font-size="10px"></text>
-									<text id="rtV2" x="25" y="20" fill="#c52a2a" font-size="10px"></text>
-								</g>
-							</RaceTrack>
-							<div id="runPane">
-								<fieldset>
-									<legend>Mode:</legend>
-									<div>
-										<input type="radio" id="mode-compare" name="mode" value="compare" checked={mode == Mode.Compare} onClick={() => updateUiState(UiStateMsg.SetModeCompare)} />
-										<label for="mode-compare">Compare</label>
-									</div>
-									<div>
-										<input type="radio" id="mode-chart" name="mode" value="chart" checked={mode == Mode.Chart} onClick={() => updateUiState(UiStateMsg.SetModeChart)} />
-										<label for="mode-chart">Skill table</label>
-									</div>
-								</fieldset>
-								<label for="nsamples">Samples:</label>
-								<input type="number" id="nsamples" min="1" max="10000" value={nsamples} onInput={(e) => setSamples(+e.currentTarget.value)} />
-								<label for="seed">Seed:</label>
-								<div id="seedWrapper">
-									<input type="number" id="seed" value={seed} onInput={(e) => setSeed(+e.currentTarget.value)} />
-									<button title="Randomize seed" onClick={() => setSeed(Math.floor(Math.random() * (-1 >>> 0)) >>> 0)}>🎲</button>
-								</div>
-								<div>
-									<label for="poskeep">Simulate pos keep</label>
-									<input type="checkbox" id="poskeep" checked={usePosKeep} onClick={togglePosKeep} />
-								</div>
-								<div>
-									<label for="showhp">Show HP consumption</label>
-									<input type="checkbox" id="showhp" checked={showHp} onClick={toggleShowHp} />
-								</div>
-								{
-									mode == Mode.Compare
-										? <button id="run" onClick={doComparison} tabindex={1}>COMPARE</button>
-										: <button id="run" onClick={doBasinnChart} tabindex={1}>RUN</button>
-								}
-								<a href="#" onClick={copyStateUrl}>Copy link</a>
-								<RacePresets courseId={courseId} racedef={racedef} set={(courseId, racedef) => { setCourseId(courseId); setRaceDef(racedef); }} />
-							</div>
-							<div id="buttonsRow">
-								<TrackSelect key={courseId} courseid={courseId} setCourseid={setCourseId} tabindex={2} />
-								<div id="buttonsRowSpace" />
-								<TimeOfDaySelect value={racedef.time} set={racesetter('time')} />
-								<div>
-									<GroundSelect value={racedef.ground} set={racesetter('ground')} />
-									<WeatherSelect value={racedef.weather} set={racesetter('weather')} />
-								</div>
-								<SeasonSelect value={racedef.season} set={racesetter('season')} />
-							</div>
-						</div>
-						{resultsPane}
-						{expanded && <div id="umaPane" />}
-						<div id={expanded ? 'umaOverlay' : 'umaPane'}>
-							<div class={!expanded && currentIdx == 0 ? 'selected' : ''}>
-								<HorseDef key={uma1.outfitId} state={uma1} setState={setUma1} courseDistance={course.distance} tabstart={() => 4}>
-									{expanded ? 'Umamusume 1' : umaTabs}
-								</HorseDef>
-							</div>
-							{expanded &&
-								<div id="copyUmaButtons">
-									<div id="copyUmaToRight" title="Copy uma 1 to uma 2" onClick={copyUmaToRight} />
-									<div id="copyUmaToLeft" title="Copy uma 2 to uma 1" onClick={copyUmaToLeft} />
-									<div id="swapUmas" title="Swap umas" onClick={swapUmas}>⮂</div>
-								</div>}
-							{mode == Mode.Compare && <div class={!expanded && currentIdx == 1 ? 'selected' : ''}>
-								<HorseDef key={uma2.outfitId} state={uma2} setState={setUma2} courseDistance={course.distance} tabstart={() => 4 + horseDefTabs()}>
-									{expanded ? 'Umamusume 2' : umaTabs}
-								</HorseDef>
-							</div>}
-							{expanded && <div id="closeUmaOverlay" title="Close panel" onClick={toggleExpand}>✕</div>}
-						</div>
-						{popoverSkill && <BasinnChartPopover skillid={popoverSkill} results={tableData.get(popoverSkill).results} courseDistance={course.distance} />}
-					</IntlProvider>
-				</Language.Provider>
-			);
-		}
-
-		initTelemetry();
-
-		// there's an annoying site that embeds the umalator surrounded by a bunch of ads
+	// Try gzip decompression if APIs are available
+	if (canUseDecompressionStream()) {
 		try {
-			// try to detect if we're in a cross-domain iframe by deliberately triggering a CORS violation (we can't inspect any
-			// properties of the parent page directly, but we can exploit that to determine if we're being embedded)
-			window.parent && window.parent.location.hostname;
-			render(<App lang="en-ja" />, document.getElementById('app'));
-		} catch (e) {
-			if (e instanceof DOMException) {
-				document.getElementById('app').innerHTML = '<p style="font-size:22px"><span style="border:3px solid orange;border-radius:3em;color:orange;display:inline-block;font-weight:bold;height:1.8em;line-height:1.8em;text-align:center;width:1.8em">!</span> You are probably on some kind of scummy ad-infested rehosting site. The official URL for the Umalator is <a href="https://alpha123.github.io/uma-tools/umalator-global/" target="_blank" rel="noopener noreferrer">https://alpha123.github.io/uma-tools/umalator-global/</a>.</p>'
-			} else {
-				throw e;
+			const zipped = atob(decodeURIComponent(base64Data));
+			const buf = new Uint8Array(zipped.split('').map(c => c.charCodeAt(0)));
+			const stringStream = new ReadableStream({
+				start(controller) {
+					controller.enqueue(buf);
+					controller.close();
+				}
+			});
+			const unzipped = stringStream.pipeThrough(new DecompressionStream('gzip'));
+			const reader = unzipped.getReader();
+			const decoder = new TextDecoder();
+			let json = '';
+			let result;
+			while (!(result = await reader.read()).done) {
+				json += decoder.decode(result.value, { stream: true });
 			}
+			// Flush any remaining bytes from the decoder
+			json += decoder.decode();
+			return json;
+		} catch (e) {
+			console.warn('Decompression failed:', e);
+			throw new Error('Failed to decompress data and no fallback available for gzip-compressed data');
 		}
+	}
+
+	// No decompression API available and data is compressed - cannot decode
+	throw new Error('DecompressionStream not available and data is gzip-compressed');
+}
+
+async function serialize(courseId: number, nsamples: number, seed: number, usePosKeep: boolean, racedef: RaceParams, uma1: HorseState, uma2: HorseState) {
+	const json = JSON.stringify({
+		courseId,
+		nsamples,
+		seed,
+		usePosKeep,
+		racedef: racedef.toJS(),
+		uma1: uma1.set('skills', Array.from(uma1.skills.values())).toJS(),
+		uma2: uma2.set('skills', Array.from(uma2.skills.values())).toJS()
+	});
+	return compressToBase64(json);
+}
+
+async function deserialize(hash) {
+	try {
+		const json = await decompressFromBase64(hash);
+		const o = JSON.parse(json);
+		return {
+			courseId: o.courseId,
+			nsamples: o.nsamples,
+			seed: o.seed || DEFAULT_SEED,  // field added later, could be undefined when loading state from existing links
+			usePosKeep: o.usePosKeep,
+			racedef: new RaceParams(o.racedef),
+			uma1: new HorseState(o.uma1).set('skills', SkillSet(o.uma1.skills)),
+			uma2: new HorseState(o.uma2).set('skills', SkillSet(o.uma2.skills))
+		};
+	} catch (e) {
+		console.warn('Failed to deserialize state:', e);
+		return {
+			courseId: DEFAULT_COURSE_ID,
+			nsamples: DEFAULT_SAMPLES,
+			seed: DEFAULT_SEED,
+			usePosKeep: true,
+			racedef: new RaceParams(),
+			uma1: new HorseState(),
+			uma2: new HorseState()
+		};
+	}
+}
+
+const EMPTY_RESULTS_STATE = { courseId: DEFAULT_COURSE_ID, results: [], runData: null, chartData: null, displaying: '' };
+function updateResultsState(state: typeof EMPTY_RESULTS_STATE, o: number | string | { results: any, runData: any }) {
+	if (typeof o == 'number') {
+		return {
+			courseId: o,
+			results: [],
+			runData: null,
+			chartData: null,
+			displaying: ''
+		};
+	} else if (typeof o == 'string') {
+		postEvent('setChartData', { display: o });
+		return {
+			courseId: state.courseId,
+			results: state.results,
+			runData: state.runData,
+			chartData: state.runData != null ? state.runData[o] : null,
+			displaying: o
+		};
+	} else {
+		return {
+			courseId: state.courseId,
+			results: o.results,
+			runData: o.runData,
+			chartData: o.runData[state.displaying || 'meanrun'],
+			displaying: state.displaying || 'meanrun'
+		};
+	}
+}
+
+function RacePresets(props) {
+	const id = useId();
+	const selectedIdx = presets.findIndex(p => p.courseId == props.courseId && p.racedef.equals(props.racedef));
+	return (
+		<Fragment>
+			<label for={id}>Preset:</label>
+			<select id={id} onChange={e => { const i = +e.currentTarget.value; i > -1 && props.set(presets[i].courseId, presets[i].racedef); }}>
+				<option value="-1"></option>
+				{presets.map((p, i) => <option value={i} selected={i == selectedIdx}>{p.name || (p.date.getUTCFullYear() + '-' + (100 + p.date.getUTCMonth() + 1).toString().slice(-2) + (p.type == EventType.CM ? ' CM' : ' LOH'))}</option>)}
+			</select>
+		</Fragment>
+	);
+}
+
+const baseSkillsToTest = Object.keys(skilldata).filter(id => isGeneralSkill(id) && !isPurpleSkill(id));
+
+const enum Mode { Compare, Chart }
+const enum UiStateMsg { SetModeCompare, SetModeChart, SetCurrentIdx0, SetCurrentIdx1, ToggleExpand }
+
+const DEFAULT_UI_STATE = { mode: Mode.Compare, currentIdx: 0, expanded: false };
+
+function nextUiState(state: typeof DEFAULT_UI_STATE, msg: UiStateMsg) {
+	switch (msg) {
+		case UiStateMsg.SetModeCompare:
+			return { ...state, mode: Mode.Compare };
+		case UiStateMsg.SetModeChart:
+			return { ...state, mode: Mode.Chart, currentIdx: 0, expanded: false };
+		case UiStateMsg.SetCurrentIdx0:
+			return { ...state, currentIdx: 0 };
+		case UiStateMsg.SetCurrentIdx1:
+			return { ...state, currentIdx: 1 };
+		case UiStateMsg.ToggleExpand:
+			return { ...state, expanded: !state.expanded };
+	}
+}
+
+function App(props) {
+	//const [language, setLanguage] = useLanguageSelect();
+	const [skillsOpen, setSkillsOpen] = useState(false);
+	const [racedef, setRaceDef] = useState(() => DEFAULT_PRESET.racedef);
+	const [nsamples, setSamples] = useState(DEFAULT_SAMPLES);
+	const [seed, setSeed] = useState(DEFAULT_SEED);
+	const [usePosKeep, togglePosKeep] = useReducer((b, _) => !b, true);
+	const [showHp, toggleShowHp] = useReducer((b, _) => !b, false);
+	const [{ courseId, results, runData, chartData, displaying }, setSimState] = useReducer(updateResultsState, EMPTY_RESULTS_STATE);
+	const setCourseId = setSimState;
+	const setResults = setSimState;
+	const setChartData = setSimState;
+
+	const [tableData, updateTableData] = useReducer((data, newData) => {
+		const merged = new Map();
+		if (newData == 'reset') {
+			return merged;
+		}
+		data.forEach((v, k) => merged.set(k, v));
+		newData.forEach((v, k) => merged.set(k, v));
+		return merged;
+	}, new Map());
+
+	const [hintLevels, setHintLevels] = useState(() => ImmMap(Object.keys(skilldata).map(id => [id, 0])));
+	function updateHintLevel(id, hint) {
+		setHintLevels(hintLevels.set(id, hint));
+	}
+
+	const [popoverSkill, setPopoverSkill] = useState('');
+
+	function racesetter(prop) {
+		return (value) => setRaceDef(racedef.set(prop, value));
+	}
+
+	const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
+
+	const [uma1, setUma1] = useState(() => new HorseState());
+	const [uma2, setUma2] = useState(() => new HorseState());
+
+	const [lastRunChartUma, setLastRunChartUma] = useState(uma1);
+
+	const [{ mode, currentIdx, expanded }, updateUiState] = useReducer(nextUiState, DEFAULT_UI_STATE);
+	function toggleExpand(e: Event) {
+		e.stopPropagation();
+		postEvent('toggleExpand', { expand: !expanded });
+		updateUiState(UiStateMsg.ToggleExpand);
+	}
+
+	const [worker1, worker2] = [1, 2].map(_ => useMemo(() => {
+		const w = new Worker('./simulator.worker.js');
+		w.addEventListener('message', function (e) {
+			const { type, results } = e.data;
+			switch (type) {
+				case 'compare':
+					setResults(results);
+					break;
+				case 'chart':
+					updateTableData(results);
+					break;
+			}
+		});
+		return w;
+	}, []));
+
+	function loadState() {
+		if (window.location.hash) {
+			deserialize(window.location.hash.slice(1)).then(o => {
+				setCourseId(o.courseId);
+				setSamples(o.nsamples);
+				setSeed(o.seed);
+				if (o.usePosKeep != usePosKeep) togglePosKeep(0);
+				setRaceDef(o.racedef);
+				setUma1(o.uma1);
+				setUma2(o.uma2);
+			});
+		}
+	}
+
+	useEffect(function () {
+		loadState();
+		window.addEventListener('hashchange', loadState);
+		return function () {
+			window.removeEventListener('hashchange', loadState);
+		};
+	}, []);
+
+	function copyStateUrl(e) {
+		e.preventDefault();
+		serialize(courseId, nsamples, seed, usePosKeep, racedef, uma1, uma2).then(hash => {
+			const url = window.location.protocol + '//' + window.location.host + window.location.pathname;
+			window.navigator.clipboard.writeText(url + '#' + hash);
+		});
+	}
+
+	function copyUmaToRight() {
+		postEvent('copyUma', { direction: 'to-right' });
+		setUma2(uma1);
+	}
+
+	function copyUmaToLeft() {
+		postEvent('copyUma', { direction: 'to-left' });
+		setUma1(uma2);
+	}
+
+	function swapUmas() {
+		postEvent('copyUma', { direction: 'swap' });
+		setUma1(uma2);
+		setUma2(uma1);
+	}
+
+	const strings = { skillnames: {}, tracknames: TRACKNAMES_en, common: CC_GLOBAL ? COMMON_global : COMMON_en };
+	const langid = CC_GLOBAL ? 0 : +(props.lang == 'en');
+	Object.keys(skillnames).forEach(id => strings.skillnames[id] = skillnames[id][langid]);
+
+	function doComparison() {
+		postEvent('doComparison', {});
+		worker1.postMessage({
+			msg: 'compare',
+			data: {
+				nsamples,
+				course,
+				racedef: racedefToParams(racedef),
+				uma1: uma1.toJS(),
+				uma2: uma2.toJS(),
+				options: { seed, usePosKeep }
+			}
+		});
+	}
+
+	function doBasinnChart() {
+		postEvent('doBasinnChart', {});
+		setLastRunChartUma(uma1);
+		const params = racedefToParams(racedef, uma1.strategy);
+		const skills = getActivateableSkills(baseSkillsToTest.filter(id => {
+			const existing = uma1.skills.get(skillmeta[id].groupId);
+			const group = skillGroups.get(skillmeta[id].groupId);
+			return !(
+				existing == id || group.indexOf(id) < group.indexOf(existing)
+				|| id[0] == '9' && uma1.skills.includes('1' + id.slice(1))  // reject inherited uniques if we already have the regular version
+				|| id == '92111091' && uma1.skills.includes('111091')  // reject rhein kraft pink inherited unique on her (not covered by the above check since the ID is different)
+			);
+		}), uma1, course, params);
+		const filler = new Map();
+		skills.forEach(id => filler.set(id, getNullRow(id)));
+		const uma = uma1.toJS();
+		const skills1 = skills.slice(0, Math.floor(skills.length / 2));
+		const skills2 = skills.slice(Math.floor(skills.length / 2));
+		updateTableData('reset');
+		updateTableData(filler);
+		worker1.postMessage({ msg: 'chart', data: { skills: skills1, course, racedef: params, uma, options: { seed, usePosKeep } } });
+		worker2.postMessage({ msg: 'chart', data: { skills: skills2, course, racedef: params, uma, options: { seed, usePosKeep } } });
+	}
+
+	function basinnChartSelection(skillId) {
+		const r = tableData.get(skillId);
+		if (r.runData != null) setResults(r);
+	}
+
+	function addSkillFromTable(skillId) {
+		postEvent('addSkillFromTable', { skillId });
+		setUma1(uma1.set('skills', uma1.skills.set(skillmeta[skillId].groupId, skillId)));
+	}
+
+	function showPopover(skillId) {
+		postEvent('showPopover', { skillId });
+		setPopoverSkill(skillId);
+	}
+
+	useEffect(function () {
+		const handleClick = function () {
+			setPopoverSkill('');
+		};
+		document.body.addEventListener('click', handleClick);
+		return function () {
+			document.body.removeEventListener('click', handleClick);
+		};
+	}, []);
+
+	function rtMouseMove(pos) {
+		if (chartData == null) return;
+		document.getElementById('rtMouseOverBox').style.display = 'block';
+		const x = pos * course.distance;
+		const i0 = binSearch(chartData.p[0], x), i1 = binSearch(chartData.p[1], x);
+		document.getElementById('rtV1').textContent = `${chartData.v[0][i0].toFixed(2)} m/s  t=${chartData.t[0][i0].toFixed(2)} s  (${chartData.hp[0][i0].toFixed(0)} hp remaining)`;
+		document.getElementById('rtV2').textContent = `${chartData.v[1][i1].toFixed(2)} m/s  t=${chartData.t[1][i1].toFixed(2)} s  (${chartData.hp[1][i1].toFixed(0)} hp remaining)`;
+	}
+
+	function rtMouseLeave() {
+		document.getElementById('rtMouseOverBox').style.display = 'none';
+	}
+
+	const mid = Math.floor(results.length / 2);
+	const median = results.length % 2 == 0 ? (results[mid - 1] + results[mid]) / 2 : results[mid];
+	const mean = results.reduce((a, b) => a + b, 0) / results.length;
+
+	const colors = [
+		{ stroke: 'rgb(42, 119, 197)', fill: 'rgba(42, 119, 197, 0.7)' },
+		{ stroke: 'rgb(197, 42, 42)', fill: 'rgba(197, 42, 42, 0.7)' }
+	];
+	const skillActivations = chartData == null ? [] : chartData.sk.flatMap((a, i) => {
+		return Array.from(a.keys()).flatMap(id => {
+			if (NO_SHOW.indexOf(skillmeta[id].iconId) > -1) return [];
+			else return a.get(id).map(ar => ({
+				type: RegionDisplayType.Textbox,
+				color: colors[i],
+				text: skillnames[id][0],
+				regions: [{ start: ar[0], end: ar[1] }]
+			}));
+		});
+	});
+
+	const umaTabs = (
+		<Fragment>
+			<div class={`umaTab ${currentIdx == 0 ? 'selected' : ''}`} onClick={() => updateUiState(UiStateMsg.SetCurrentIdx0)}>Umamusume 1</div>
+			{mode == Mode.Compare && <div class={`umaTab ${currentIdx == 1 ? 'selected' : ''}`} onClick={() => updateUiState(UiStateMsg.SetCurrentIdx1)}>Umamusume 2<div id="expandBtn" title="Expand panel" onClick={toggleExpand} /></div>}
+		</Fragment>
+	);
+
+	let resultsPane;
+	if (mode == Mode.Compare && results.length > 0) {
+		resultsPane = (
+			<div id="resultsPaneWrapper">
+				<div id="resultsPane" class="mode-compare">
+					<table id="resultsSummary">
+						<tfoot>
+							<tr>
+								{Object.entries({
+									minrun: ['Minimum', 'Set chart display to the run with minimum bashin difference'],
+									maxrun: ['Maximum', 'Set chart display to the run with maximum bashin difference'],
+									meanrun: ['Mean', 'Set chart display to a run representative of the mean bashin difference'],
+									medianrun: ['Median', 'Set chart display to a run representative of the median bashin difference']
+								}).map(([k, label]) =>
+									<th scope="col" class={displaying == k ? 'selected' : ''} title={label[1]} onClick={() => setChartData(k)}>{label[0]}</th>
+								)}
+							</tr>
+						</tfoot>
+						<tbody>
+							<tr>
+								<td onClick={() => setChartData('minrun')}>{results[0].toFixed(2)}<span class="unit-basinn">{CC_GLOBAL ? 'lengths' : 'バ身'}</span></td>
+								<td onClick={() => setChartData('maxrun')}>{results[results.length - 1].toFixed(2)}<span class="unit-basinn">{CC_GLOBAL ? 'lengths' : 'バ身'}</span></td>
+								<td onClick={() => setChartData('meanrun')}>{mean.toFixed(2)}<span class="unit-basinn">{CC_GLOBAL ? 'lengths' : 'バ身'}</span></td>
+								<td onClick={() => setChartData('medianrun')}>{median.toFixed(2)}<span class="unit-basinn">{CC_GLOBAL ? 'lengths' : 'バ身'}</span></td>
+							</tr>
+						</tbody>
+					</table>
+					<div id="resultsHelp">Negative numbers mean <strong style="color:#2a77c5">Umamusume 1</strong> is faster, positive numbers mean <strong style="color:#c52a2a">Umamusume 2</strong> is faster.</div>
+					<Histogram width={500} height={333} data={results} />
+				</div>
+				<div id="infoTables">
+					<ResultsTable caption="Umamusume 1" color="#2a77c5" chartData={chartData} idx={0} />
+					<ResultsTable caption="Umamusume 2" color="#c52a2a" chartData={chartData} idx={1} />
+				</div>
+			</div>
+		);
+	} else if (mode == Mode.Chart && tableData.size > 0) {
+		const dirty = !uma1.equals(lastRunChartUma);
+		resultsPane = (
+			<div id="resultsPaneWrapper">
+				<div id="resultsPane" class="mode-chart">
+					<div class="basinnChartWrapperWrapper">
+						<BasinnChart data={tableData.values().toArray()} hasSkills={lastRunChartUma.skills} hints={hintLevels}
+							dirty={dirty}
+							updateHint={updateHintLevel}
+							onSelectionChange={basinnChartSelection}
+							onRunTypeChange={setChartData}
+							onDblClickRow={addSkillFromTable}
+							onInfoClick={showPopover} />
+						<button class={`basinnChartRefresh${dirty ? '' : ' hidden'}`} onClick={doBasinnChart}>⟲</button>
+					</div>
+				</div>
+			</div>
+		);
+	} else if (CC_GLOBAL) {
+		resultsPane = (
+			<div id="resultsPaneWrapper">
+				<div id="resultsPane">
+					<IntroText />
+				</div>
+			</div>
+		);
+	} else {
+		resultsPane = null;
+	}
+
+	return (
+		<Language.Provider value={props.lang}>
+			<IntlProvider definition={strings}>
+				<div id="topPane" class={chartData ? 'hasResults' : ''}>
+					<RaceTrack courseid={courseId} width={960} height={240} xOffset={20} yOffset={15} yExtra={20} mouseMove={rtMouseMove} mouseLeave={rtMouseLeave} regions={skillActivations}>
+						<VelocityLines data={chartData} courseDistance={course.distance} width={960} height={250} xOffset={20} showHp={showHp} />
+						<g id="rtMouseOverBox" style="display:none">
+							<text id="rtV1" x="25" y="10" fill="#2a77c5" font-size="10px"></text>
+							<text id="rtV2" x="25" y="20" fill="#c52a2a" font-size="10px"></text>
+						</g>
+					</RaceTrack>
+					<div id="runPane">
+						<fieldset>
+							<legend>Mode:</legend>
+							<div>
+								<input type="radio" id="mode-compare" name="mode" value="compare" checked={mode == Mode.Compare} onClick={() => updateUiState(UiStateMsg.SetModeCompare)} />
+								<label for="mode-compare">Compare</label>
+							</div>
+							<div>
+								<input type="radio" id="mode-chart" name="mode" value="chart" checked={mode == Mode.Chart} onClick={() => updateUiState(UiStateMsg.SetModeChart)} />
+								<label for="mode-chart">Skill table</label>
+							</div>
+						</fieldset>
+						<label for="nsamples">Samples:</label>
+						<input type="number" id="nsamples" min="1" max="10000" value={nsamples} onInput={(e) => setSamples(+e.currentTarget.value)} />
+						<label for="seed">Seed:</label>
+						<div id="seedWrapper">
+							<input type="number" id="seed" value={seed} onInput={(e) => setSeed(+e.currentTarget.value)} />
+							<button title="Randomize seed" onClick={() => setSeed(Math.floor(Math.random() * (-1 >>> 0)) >>> 0)}>🎲</button>
+						</div>
+						<div>
+							<label for="poskeep">Simulate pos keep</label>
+							<input type="checkbox" id="poskeep" checked={usePosKeep} onClick={togglePosKeep} />
+						</div>
+						<div>
+							<label for="showhp">Show HP consumption</label>
+							<input type="checkbox" id="showhp" checked={showHp} onClick={toggleShowHp} />
+						</div>
+						{
+							mode == Mode.Compare
+								? <button id="run" onClick={doComparison} tabindex={1}>COMPARE</button>
+								: <button id="run" onClick={doBasinnChart} tabindex={1}>RUN</button>
+						}
+						<a href="#" onClick={copyStateUrl}>Copy link</a>
+						<RacePresets courseId={courseId} racedef={racedef} set={(courseId, racedef) => { setCourseId(courseId); setRaceDef(racedef); }} />
+					</div>
+					<div id="buttonsRow">
+						<TrackSelect key={courseId} courseid={courseId} setCourseid={setCourseId} tabindex={2} />
+						<div id="buttonsRowSpace" />
+						<TimeOfDaySelect value={racedef.time} set={racesetter('time')} />
+						<div>
+							<GroundSelect value={racedef.ground} set={racesetter('ground')} />
+							<WeatherSelect value={racedef.weather} set={racesetter('weather')} />
+						</div>
+						<SeasonSelect value={racedef.season} set={racesetter('season')} />
+					</div>
+				</div>
+				{resultsPane}
+				{expanded && <div id="umaPane" />}
+				<div id={expanded ? 'umaOverlay' : 'umaPane'}>
+					<div class={!expanded && currentIdx == 0 ? 'selected' : ''}>
+						<HorseDef key={uma1.outfitId} state={uma1} setState={setUma1} courseDistance={course.distance} tabstart={() => 4}>
+							{expanded ? 'Umamusume 1' : umaTabs}
+						</HorseDef>
+					</div>
+					{expanded &&
+						<div id="copyUmaButtons">
+							<div id="copyUmaToRight" title="Copy uma 1 to uma 2" onClick={copyUmaToRight} />
+							<div id="copyUmaToLeft" title="Copy uma 2 to uma 1" onClick={copyUmaToLeft} />
+							<div id="swapUmas" title="Swap umas" onClick={swapUmas}>⮂</div>
+						</div>}
+					{mode == Mode.Compare && <div class={!expanded && currentIdx == 1 ? 'selected' : ''}>
+						<HorseDef key={uma2.outfitId} state={uma2} setState={setUma2} courseDistance={course.distance} tabstart={() => 4 + horseDefTabs()}>
+							{expanded ? 'Umamusume 2' : umaTabs}
+						</HorseDef>
+					</div>}
+					{expanded && <div id="closeUmaOverlay" title="Close panel" onClick={toggleExpand}>✕</div>}
+				</div>
+				{popoverSkill && <BasinnChartPopover skillid={popoverSkill} results={tableData.get(popoverSkill).results} courseDistance={course.distance} />}
+			</IntlProvider>
+		</Language.Provider>
+	);
+}
+
+initTelemetry();
+
+// there's an annoying site that embeds the umalator surrounded by a bunch of ads
+try {
+	// try to detect if we're in a cross-domain iframe by deliberately triggering a CORS violation (we can't inspect any
+	// properties of the parent page directly, but we can exploit that to determine if we're being embedded)
+	window.parent && window.parent.location.hostname;
+	render(<App lang="en-ja" />, document.getElementById('app'));
+} catch (e) {
+	if (e instanceof DOMException) {
+		document.getElementById('app').innerHTML = '<p style="font-size:22px"><span style="border:3px solid orange;border-radius:3em;color:orange;display:inline-block;font-weight:bold;height:1.8em;line-height:1.8em;text-align:center;width:1.8em">!</span> You are probably on some kind of scummy ad-infested rehosting site. The official URL for the Umalator is <a href="https://alpha123.github.io/uma-tools/umalator-global/" target="_blank" rel="noopener noreferrer">https://alpha123.github.io/uma-tools/umalator-global/</a>.</p>'
+	} else {
+		throw e;
+	}
+}
