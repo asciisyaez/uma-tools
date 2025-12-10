@@ -308,6 +308,7 @@ function racedefToParams({ mood, ground, weather, season, time, grade }: RacePar
 	};
 }
 
+
 // Helper to check if gzip compression APIs are available
 function canUseCompressionStream(): boolean {
 	return typeof CompressionStream !== 'undefined' && typeof TextEncoder !== 'undefined';
@@ -406,12 +407,13 @@ async function decompressFromBase64(hash: string): Promise<string> {
 	throw new Error('DecompressionStream not available and data is gzip-compressed');
 }
 
-async function serialize(courseId: number, nsamples: number, seed: number, usePosKeep: boolean, racedef: RaceParams, uma1: HorseState, uma2: HorseState) {
+async function serialize(courseId: number, nsamples: number, seed: number, usePosKeep: boolean, useIntChecks: boolean, racedef: RaceParams, uma1: HorseState, uma2: HorseState) {
 	const json = JSON.stringify({
 		courseId,
 		nsamples,
 		seed,
 		usePosKeep,
+		useIntChecks,
 		racedef: racedef.toJS(),
 		uma1: uma1.set('skills', Array.from(uma1.skills.values())).toJS(),
 		uma2: uma2.set('skills', Array.from(uma2.skills.values())).toJS()
@@ -428,6 +430,7 @@ async function deserialize(hash) {
 			nsamples: o.nsamples,
 			seed: o.seed || DEFAULT_SEED,  // field added later, could be undefined when loading state from existing links
 			usePosKeep: o.usePosKeep,
+			useIntChecks: o.useIntChecks || false,
 			racedef: new RaceParams(o.racedef),
 			uma1: new HorseState(o.uma1).set('skills', SkillSet(o.uma1.skills)),
 			uma2: new HorseState(o.uma2).set('skills', SkillSet(o.uma2.skills))
@@ -439,6 +442,7 @@ async function deserialize(hash) {
 			nsamples: DEFAULT_SAMPLES,
 			seed: DEFAULT_SEED,
 			usePosKeep: true,
+			useIntChecks: false,
 			racedef: new RaceParams(),
 			uma1: new HorseState(),
 			uma2: new HorseState()
@@ -519,6 +523,7 @@ function App(props) {
 	const [nsamples, setSamples] = useState(DEFAULT_SAMPLES);
 	const [seed, setSeed] = useState(DEFAULT_SEED);
 	const [usePosKeep, togglePosKeep] = useReducer((b, _) => !b, true);
+	const [useIntChecks, toggleIntChecks] = useReducer((b, _) => !b, false);
 	const [showHp, toggleShowHp] = useReducer((b, _) => !b, false);
 	const [{ courseId, results, runData, chartData, displaying }, setSimState] = useReducer(updateResultsState, EMPTY_RESULTS_STATE);
 	const setCourseId = setSimState;
@@ -583,6 +588,7 @@ function App(props) {
 				setSamples(o.nsamples);
 				setSeed(o.seed);
 				if (o.usePosKeep != usePosKeep) togglePosKeep(0);
+				if (!!o.useIntChecks != useIntChecks) toggleIntChecks(0);
 				setRaceDef(o.racedef);
 				setUma1(o.uma1);
 				setUma2(o.uma2);
@@ -600,7 +606,7 @@ function App(props) {
 
 	function copyStateUrl(e) {
 		e.preventDefault();
-		serialize(courseId, nsamples, seed, usePosKeep, racedef, uma1, uma2).then(hash => {
+		serialize(courseId, nsamples, seed, usePosKeep, useIntChecks, racedef, uma1, uma2).then(hash => {
 			const url = window.location.protocol + '//' + window.location.host + window.location.pathname;
 			window.navigator.clipboard.writeText(url + '#' + hash);
 		});
@@ -636,7 +642,7 @@ function App(props) {
 				racedef: racedefToParams(racedef),
 				uma1: uma1.toJS(),
 				uma2: uma2.toJS(),
-				options: { seed, usePosKeep }
+				options: { seed, usePosKeep, useIntChecks }
 			}
 		});
 	}
@@ -661,8 +667,8 @@ function App(props) {
 		const skills2 = skills.slice(Math.floor(skills.length / 2));
 		updateTableData('reset');
 		updateTableData(filler);
-		worker1.postMessage({ msg: 'chart', data: { skills: skills1, course, racedef: params, uma, options: { seed, usePosKeep } } });
-		worker2.postMessage({ msg: 'chart', data: { skills: skills2, course, racedef: params, uma, options: { seed, usePosKeep } } });
+		worker1.postMessage({ msg: 'chart', data: { skills: skills1, course, racedef: params, uma, options: { seed, usePosKeep, useIntChecks: false } } });
+		worker2.postMessage({ msg: 'chart', data: { skills: skills2, course, racedef: params, uma, options: { seed, usePosKeep, useIntChecks: false } } });
 	}
 
 	function basinnChartSelection(skillId) {
@@ -830,6 +836,10 @@ function App(props) {
 						<div class="checkboxOption">
 							<input type="checkbox" id="poskeep" checked={usePosKeep} onClick={togglePosKeep} />
 							<label for="poskeep">Pos keep</label>
+						</div>
+						<div class="checkboxOption">
+							<input type="checkbox" id="intchecks" checked={useIntChecks} onClick={toggleIntChecks} />
+							<label for="intchecks">{CC_GLOBAL ? 'Wit checks for skills' : 'Wisdom checks for skills'}</label>
 						</div>
 						<div class="checkboxOption">
 							<input type="checkbox" id="showhp" checked={showHp} onClick={toggleShowHp} />
