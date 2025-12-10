@@ -808,17 +808,18 @@ function App(props) {
 						</g>
 					</RaceTrack>
 					<div id="runPane">
-						<fieldset>
-							<legend>Mode:</legend>
-							<div>
-								<input type="radio" id="mode-compare" name="mode" value="compare" checked={mode == Mode.Compare} onClick={() => updateUiState(UiStateMsg.SetModeCompare)} />
-								<label for="mode-compare">Compare</label>
-							</div>
-							<div>
-								<input type="radio" id="mode-chart" name="mode" value="chart" checked={mode == Mode.Chart} onClick={() => updateUiState(UiStateMsg.SetModeChart)} />
-								<label for="mode-chart">Skill table</label>
-							</div>
-						</fieldset>
+						<div class="modeToggle">
+							<button
+								class={mode == Mode.Compare ? 'active' : ''}
+								onClick={() => updateUiState(UiStateMsg.SetModeCompare)}>
+								Compare
+							</button>
+							<button
+								class={mode == Mode.Chart ? 'active' : ''}
+								onClick={() => updateUiState(UiStateMsg.SetModeChart)}>
+								Skill Table
+							</button>
+						</div>
 						<label for="nsamples">Samples:</label>
 						<input type="number" id="nsamples" min="1" max="10000" value={nsamples} onInput={(e) => setSamples(+e.currentTarget.value)} />
 						<label for="seed">Seed:</label>
@@ -826,13 +827,13 @@ function App(props) {
 							<input type="number" id="seed" value={seed} onInput={(e) => setSeed(+e.currentTarget.value)} />
 							<button title="Randomize seed" onClick={() => setSeed(Math.floor(Math.random() * (-1 >>> 0)) >>> 0)}>🎲</button>
 						</div>
-						<div>
-							<label for="poskeep">Simulate pos keep</label>
+						<div class="checkboxOption">
 							<input type="checkbox" id="poskeep" checked={usePosKeep} onClick={togglePosKeep} />
+							<label for="poskeep">Pos keep</label>
 						</div>
-						<div>
-							<label for="showhp">Show HP consumption</label>
+						<div class="checkboxOption">
 							<input type="checkbox" id="showhp" checked={showHp} onClick={toggleShowHp} />
+							<label for="showhp">Show HP</label>
 						</div>
 						{
 							mode == Mode.Compare
