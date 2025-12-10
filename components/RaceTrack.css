@@ -43,3 +43,10 @@
 	stroke: var(--color-bg-primary, #0f172a);
 	stroke-width: 3px;
 }
+
+/* Racetrack wrapper - enable horizontal scrolling on small screens */
+.racetrackWrapper {
+	max-width: 100%;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+}
