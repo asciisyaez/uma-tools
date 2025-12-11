@@ -27,23 +27,23 @@ export function runComparison(nsamples: number, course: CourseData, racedef: Rac
 	const uma2_ = uma2.update('skills', sk => Array.from(sk.values())).toJS();
 	standard.horse(uma1_);
 	compare.horse(uma2_);
-	const wisdomRolls = new Map();
+	const wisdomSeeds = new Map<string, [number, number]>();
 	const wisdomRng = new Rule30CARng(options.seed);
 	for (let i = 0; i < 20; ++i) wisdomRng.pair();   // advance the RNG state a bit because we only seeded the low bits
 	// ensure skills common to the two umas are added in the same order regardless of what additional skills they have
 	// this is important to make sure the rng for their activations is synced
 	// sort first by groupId so that white and gold versions of a skill get added in the same order
-	const common = uma1.skills.keySeq().toSet().intersect(uma2.skills.keySeq().toSet()).toArray().sort((a,b) => +a - +b);
+	const common = uma1.skills.keySeq().toSet().intersect(uma2.skills.keySeq().toSet()).toArray().sort((a, b) => +a - +b);
 	const commonIdx = (id) => { let i = common.indexOf(skillmeta[id].groupId); return i > -1 ? i : common.length; };
-	const sort = (a,b) => commonIdx(a) - commonIdx(b) || +a - +b;
+	const sort = (a, b) => commonIdx(a) - commonIdx(b) || +a - +b;
 	uma1_.skills.sort(sort).forEach(id => {
-		wisdomRolls.set(id, wisdomRng.random());
+		wisdomSeeds.set(id, wisdomRng.pair());
 		standard.addSkill(id, Perspective.Self);
 		compare.addSkill(id, Perspective.Other);
 	});
 	uma2_.skills.sort(sort).forEach(id => {
 		// this means that the second set of rolls 'wins' for skills on both, but this doesn't actually matter
-		wisdomRolls.set(id, wisdomRng.random());
+		wisdomSeeds.set(id, wisdomRng.pair());
 		compare.addSkill(id, Perspective.Self);
 		standard.addSkill(id, Perspective.Other);
 	});
@@ -55,8 +55,8 @@ export function runComparison(nsamples: number, course: CourseData, racedef: Rac
 		standard.useDefaultPacer(); compare.useDefaultPacer();
 	}
 	if (options.useIntChecks) {
-		standard.withWisdomChecks(wisdomRolls);
-		compare.withWisdomChecks(wisdomRolls);
+		standard.withWisdomChecks(wisdomSeeds);
+		compare.withWisdomChecks(wisdomSeeds);
 	}
 	const skillPos1 = new Map(), skillPos2 = new Map();
 	function getActivator(skillSet) {
@@ -103,10 +103,10 @@ export function runComparison(nsamples: number, course: CourseData, racedef: Rac
 	for (let i = 0; i < nsamples; ++i) {
 		const s1 = a.next(retry).value as RaceSolver;
 		const s2 = b.next(retry).value as RaceSolver;
-		const data = {t: [[], []], p: [[], []], v: [[], []], hp: [[], []], sk: [null,null], sdly: [0,0], dh: [0,0]};
+		const data = { t: [[], []], p: [[], []], v: [[], []], hp: [[], []], sk: [null, null], sdly: [0, 0], dh: [0, 0] };
 
 		while (s2.pos < course.distance) {
-			s2.step(1/15);
+			s2.step(1 / 15);
 			data.t[ai].push(s2.accumulatetime.t);
 			data.p[ai].push(s2.pos);
 			data.v[ai].push(s2.currentSpeed + (s2.modifiers.currentSpeed.acc + s2.modifiers.currentSpeed.err));
@@ -115,7 +115,7 @@ export function runComparison(nsamples: number, course: CourseData, racedef: Rac
 		data.sdly[ai] = s2.startDelay;
 
 		while (s1.accumulatetime.t < s2.accumulatetime.t) {
-			s1.step(1/15);
+			s1.step(1 / 15);
 			data.t[bi].push(s1.accumulatetime.t);
 			data.p[bi].push(s1.pos);
 			data.v[bi].push(s1.currentSpeed + (s1.modifiers.currentSpeed.acc + s1.modifiers.currentSpeed.err));
@@ -124,7 +124,7 @@ export function runComparison(nsamples: number, course: CourseData, racedef: Rac
 		// run the rest of the way to have data for the chart
 		const pos1 = s1.pos;
 		while (s1.pos < course.distance) {
-			s1.step(1/15);
+			s1.step(1 / 15);
 			data.t[bi].push(s1.accumulatetime.t);
 			data.p[bi].push(s1.pos);
 			data.v[bi].push(s1.currentSpeed + (s1.modifiers.currentSpeed.acc + s1.modifiers.currentSpeed.err));
@@ -147,8 +147,8 @@ export function runComparison(nsamples: number, course: CourseData, racedef: Rac
 		// continues past the end of the course. i feel like there are probably some other situations where it would
 		// be inaccurate also. if this happens we have to swap them around and run it again.
 		if (s2.pos < pos1 || isNaN(pos1)) {
-			[b,a] = [a,b];
-			[bi,ai] = [ai,bi];
+			[b, a] = [a, b];
+			[bi, ai] = [ai, bi];
 			sign *= -1;
 			--i;  // this one didnt count
 			retry = true;
@@ -165,10 +165,10 @@ export function runComparison(nsamples: number, course: CourseData, racedef: Rac
 				maxrun = data;
 			}
 			if (i == sampleCutoff) {
-				diff.sort((a,b) => a - b);
-				estMean = diff.reduce((a,b) => a + b) / diff.length;
+				diff.sort((a, b) => a - b);
+				estMean = diff.reduce((a, b) => a + b) / diff.length;
 				const mid = Math.floor(diff.length / 2);
-				estMedian = mid > 0 && diff.length % 2 == 0 ? (diff[mid-1] + diff[mid]) / 2 : diff[mid];
+				estMedian = mid > 0 && diff.length % 2 == 0 ? (diff[mid - 1] + diff[mid]) / 2 : diff[mid];
 			}
 			if (i >= sampleCutoff) {
 				const meanDiff = Math.abs(basinn - estMean), medianDiff = Math.abs(basinn - estMedian);
@@ -183,6 +183,6 @@ export function runComparison(nsamples: number, course: CourseData, racedef: Rac
 			}
 		}
 	}
-	diff.sort((a,b) => a - b);
-	return {results: diff, runData: {minrun, maxrun, meanrun, medianrun}};
+	diff.sort((a, b) => a - b);
+	return { results: diff, runData: { minrun, maxrun, meanrun, medianrun } };
 }
