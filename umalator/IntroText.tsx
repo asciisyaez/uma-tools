@@ -187,5 +187,4 @@ export function IntroText(props) {
 			</footer>
 		</div>
 	);
-	;
 }
