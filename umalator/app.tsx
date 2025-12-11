@@ -308,6 +308,7 @@ function racedefToParams({ mood, ground, weather, season, time, grade }: RacePar
 	};
 }
 
+<<<<<<< HEAD
 
 // Helper to check if gzip compression APIs are available
 function canUseCompressionStream(): boolean {
@@ -407,6 +408,8 @@ async function decompressFromBase64(hash: string): Promise<string> {
 	throw new Error('DecompressionStream not available and data is gzip-compressed');
 }
 
+=======
+>>>>>>> upstream/master
 async function serialize(courseId: number, nsamples: number, seed: number, usePosKeep: boolean, useIntChecks: boolean, racedef: RaceParams, uma1: HorseState, uma2: HorseState) {
 	const json = JSON.stringify({
 		courseId,
@@ -422,6 +425,7 @@ async function serialize(courseId: number, nsamples: number, seed: number, usePo
 }
 
 async function deserialize(hash) {
+<<<<<<< HEAD
 	try {
 		const json = await decompressFromBase64(hash);
 		const o = JSON.parse(json);
@@ -447,6 +451,50 @@ async function deserialize(hash) {
 			uma1: new HorseState(),
 			uma2: new HorseState()
 		};
+=======
+	const zipped = atob(decodeURIComponent(hash));
+	const buf = new Uint8Array(zipped.split('').map(c => c.charCodeAt(0)));
+	const stringStream = new ReadableStream({
+		start(controller) {
+			controller.enqueue(buf);
+			controller.close();
+		}
+	});
+	const unzipped = stringStream.pipeThrough(new DecompressionStream('gzip'));
+	const reader = unzipped.getReader();
+	const decoder = new TextDecoder();
+	let json = '';
+	let result;
+	while ((result = await reader.read())) {
+		if (result.done) {
+			try {
+				const o = JSON.parse(json);
+				return {
+					courseId: o.courseId,
+					nsamples: o.nsamples,
+					seed: o.seed || DEFAULT_SEED,  // field added later, could be undefined when loading state from existing links
+					usePosKeep: o.usePosKeep,
+					useIntChecks: o.useIntChecks || false,  // added later
+					racedef: new RaceParams(o.racedef),
+					uma1: new HorseState(o.uma1).set('skills', SkillSet(o.uma1.skills)),
+					uma2: new HorseState(o.uma2).set('skills', SkillSet(o.uma2.skills))
+				};
+			} catch (_) {
+				return {
+					courseId: DEFAULT_COURSE_ID,
+					nsamples: DEFAULT_SAMPLES,
+					seed: DEFAULT_SEED,
+					usePosKeep: true,
+					useIntChecks: false,
+					racedef: new RaceParams(),
+					uma1: new HorseState(),
+					uma2: new HorseState()
+				};
+			}
+		} else {
+			json += decoder.decode(result.value);
+		}
+>>>>>>> upstream/master
 	}
 }
 
@@ -522,10 +570,17 @@ function App(props) {
 	const [racedef, setRaceDef] = useState(() => DEFAULT_PRESET.racedef);
 	const [nsamples, setSamples] = useState(DEFAULT_SAMPLES);
 	const [seed, setSeed] = useState(DEFAULT_SEED);
+<<<<<<< HEAD
 	const [usePosKeep, togglePosKeep] = useReducer((b, _) => !b, true);
 	const [useIntChecks, toggleIntChecks] = useReducer((b, _) => !b, false);
 	const [showHp, toggleShowHp] = useReducer((b, _) => !b, false);
 	const [{ courseId, results, runData, chartData, displaying }, setSimState] = useReducer(updateResultsState, EMPTY_RESULTS_STATE);
+=======
+	const [usePosKeep, togglePosKeep] = useReducer((b,_) => !b, true);
+	const [useIntChecks, toggleIntChecks] = useReducer((b,_) => !b, false);
+	const [showHp, toggleShowHp] = useReducer((b,_) => !b, false);
+	const [{courseId, results, runData, chartData, displaying}, setSimState] = useReducer(updateResultsState, EMPTY_RESULTS_STATE);
+>>>>>>> upstream/master
 	const setCourseId = setSimState;
 	const setResults = setSimState;
 	const setChartData = setSimState;
@@ -642,7 +697,11 @@ function App(props) {
 				racedef: racedefToParams(racedef),
 				uma1: uma1.toJS(),
 				uma2: uma2.toJS(),
+<<<<<<< HEAD
 				options: { seed, usePosKeep, useIntChecks }
+=======
+				options: {seed, usePosKeep, useIntChecks}
+>>>>>>> upstream/master
 			}
 		});
 	}
@@ -667,8 +726,13 @@ function App(props) {
 		const skills2 = skills.slice(Math.floor(skills.length / 2));
 		updateTableData('reset');
 		updateTableData(filler);
+<<<<<<< HEAD
 		worker1.postMessage({ msg: 'chart', data: { skills: skills1, course, racedef: params, uma, options: { seed, usePosKeep, useIntChecks: false } } });
 		worker2.postMessage({ msg: 'chart', data: { skills: skills2, course, racedef: params, uma, options: { seed, usePosKeep, useIntChecks: false } } });
+=======
+		worker1.postMessage({msg: 'chart', data: {skills: skills1, course, racedef: params, uma, options: {seed, usePosKeep, useIntChecks: false}}});
+		worker2.postMessage({msg: 'chart', data: {skills: skills2, course, racedef: params, uma, options: {seed, usePosKeep, useIntChecks: false}}});
+>>>>>>> upstream/master
 	}
 
 	function basinnChartSelection(skillId) {
@@ -837,11 +901,20 @@ function App(props) {
 							<input type="checkbox" id="poskeep" checked={usePosKeep} onClick={togglePosKeep} />
 							<label for="poskeep">Pos keep</label>
 						</div>
+<<<<<<< HEAD
 						<div class="checkboxOption">
 							<input type="checkbox" id="intchecks" checked={useIntChecks} onClick={toggleIntChecks} />
 							<label for="intchecks">{CC_GLOBAL ? 'Wit checks for skills' : 'Wisdom checks for skills'}</label>
 						</div>
 						<div class="checkboxOption">
+=======
+						<div>
+							<label for="intchecks">{CC_GLOBAL?'Wit checks for skills':'Wisdom checks for skills'}</label>
+							<input type="checkbox" id="intchecks" checked={useIntChecks} onClick={toggleIntChecks} />
+						</div>
+						<div>
+							<label for="showhp">Show HP consumption</label>
+>>>>>>> upstream/master
 							<input type="checkbox" id="showhp" checked={showHp} onClick={toggleShowHp} />
 							<label for="showhp">Show HP</label>
 						</div>
