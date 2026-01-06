@@ -156,7 +156,8 @@
             "Symboli Rudolf"
         ],
         "outfits": {
-            "101701": "[Emperor's Path]"
+            "101701": "[Emperor's Path]",
+            "101702": "[Archer by Moonlight]"
         }
     },
     "1018": {
@@ -304,7 +305,8 @@
             "Gold City"
         ],
         "outfits": {
-            "104001": "[Authentic / 1928]"
+            "104001": "[Authentic / 1928]",
+            "104002": "[Autumn Cosmos]"
         }
     },
     "1041": {
@@ -333,6 +335,15 @@
         ],
         "outfits": {
             "104601": "[LOVE☆4EVER]"
+        }
+    },
+    "1048": {
+        "name": [
+            "",
+            "Tosen Jordan"
+        ],
+        "outfits": {
+            "104801": "[Jokester ☆ Vibes]"
         }
     },
     "1050": {
@@ -370,6 +381,15 @@
         ],
         "outfits": {
             "105801": "[Turbulent Blue]"
+        }
+    },
+    "1059": {
+        "name": [
+            "",
+            "Mejiro Dober"
+        ],
+        "outfits": {
+            "105901": "[Off the Line]"
         }
     },
     "1060": {
